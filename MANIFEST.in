@@ -1,0 +1,2 @@
+include versioneer.py
+include mq_client_abstraction/_version.py
