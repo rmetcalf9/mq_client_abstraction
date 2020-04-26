@@ -2,6 +2,7 @@ import TestHelperSuperClass
 import mq_client_abstraction
 import copy
 import queue
+import time
 
 clientTypesToTest = []
 clientTypesToTest.append({"Type": "Memory"})
@@ -126,6 +127,30 @@ class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
       except mq_client_abstraction.MqClientProcessLoopTimeoutExceptionClass:
         pass #ignore timeout
       mqClient.close()
+
+      self.assertEqual(recieveQueue.qsize(), 1)
+      msgRecieved = recieveQueue.get()
+      self.assertEqual(msgRecieved, testMessage, msg="Wrong message recieved")
+
+
+  def test_sendMessageAndRecieveUsingQueueInSeperareThread(self):
+    for configDict in clientTypesToTest:
+      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+      self.assertEqual(mqClient.getType(),"Memory")
+
+      testMessage="asf435tyhbred3wvbr"
+      testDestination="aa"
+
+      recieveQueue = queue.Queue()
+      mqClient.subscribeDestinationToPythonQueue(destination=testDestination, queue=recieveQueue)
+
+      mqClient.sendStringMessage(destination=testDestination, body=testMessage)
+
+      mqClient.startRecieveThread(sleepTime=0.1)
+
+      time.sleep(0.3)
+
+      mqClient.close(wait=True)
 
       self.assertEqual(recieveQueue.qsize(), 1)
       msgRecieved = recieveQueue.get()

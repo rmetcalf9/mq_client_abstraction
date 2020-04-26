@@ -1,5 +1,6 @@
 import time
 import queue
+import threading
 
 class MqClientExceptionClass(Exception):
   pass
@@ -7,9 +8,42 @@ class MqClientExceptionClass(Exception):
 class MqClientProcessLoopTimeoutExceptionClass(MqClientExceptionClass):
   pass
 
+class RecieveThread(threading.Thread):
+  running = None
+  sleepTime = None
+  stopped = None
+  loopIterationFunction = None
+  def __init__(self, sleepTime, loopIterationFunction):
+    self.running = True
+    self.sleepTime = sleepTime
+    self.stopped = False
+    self.loopIterationFunction = loopIterationFunction
+
+    super(RecieveThread, self).__init__()
+
+  def run(self):
+    self.running = True
+    print('MQ Client recieve thread starting')
+    while self.running:
+      self.loopIterationFunction()
+      time.sleep(self.sleepTime)
+    print('MQ Client recieve thread terminating')
+    self.stopped = True
+
+
+  def close(self, wait):
+    if self.stopped:
+      raise MqClientExceptionClass("Closing thread twice")
+    self.stopped = False
+    self.running = False
+    if wait:
+      while self.stopped == False:
+        time.sleep(self.sleepTime)
+
 class MqClientBaseClass():
   destinationPrefix = None
   subscriptions = None
+  recieveThread = None
   def __init__(self, configDict):
     self.configDict = configDict
     self.subscriptions = {}
@@ -73,8 +107,17 @@ class MqClientBaseClass():
   def processLoopIteration(self):
     self._processLoopIteration()
 
-  def close(self):
-    self._close()
+  def close(self, wait=False):
+    #if wait is true then hang until threads etc are stopped
+    self._close(wait=wait)
+    if self.recieveThread is not None:
+      self.recieveThread.close(wait=wait)
+
+  def startRecieveThread(self, sleepTime=0.2):
+    if self.recieveThread is not None:
+      raise MqClientExceptionClass("Trying to start recieve thread twice")
+    self.recieveThread = RecieveThread(sleepTime, loopIterationFunction=self.processLoopIteration)
+    self.recieveThread.start()
 
   # Functions called from derived class only
   def processMessageCALLEDFROMDERIVEDONLY(self, destination, body):
@@ -89,5 +132,5 @@ class MqClientBaseClass():
   def _processLoopIteration(self):
     pass #overriden by inherited classes incase they have logic
 
-  def _close(self):
+  def _close(self, wait):
     pass #overriden by inherited classes incase they have logic
