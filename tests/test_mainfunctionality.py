@@ -7,7 +7,7 @@ class test_mainfunctionality(TestHelperSuperClass.testHelperSuperClass):
     with self.assertRaises(Exception) as context:
       mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
     self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
-    self.assertEqual(str(context.exception),"Invalid object store config - Type Missing")
+    self.assertEqual(str(context.exception),"Invalid mq client config - Type Missing")
 
   def test_initInvalidTypeFails(self):
     configDict = {
@@ -16,5 +16,11 @@ class test_mainfunctionality(TestHelperSuperClass.testHelperSuperClass):
     with self.assertRaises(Exception) as context:
       mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
     self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
-    self.assertEqual(str(context.exception),"Invalid object store config Type - invalid")
+    self.assertEqual(str(context.exception),"Invalid mq client config Type - invalid")
+
+
+  def test_initDefaultGivesMemoryStore(self):
+    configDict = None
+    mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+    self.assertEqual(mqClient.getType(),"Memory")
 

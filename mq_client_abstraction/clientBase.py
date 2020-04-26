@@ -1,4 +1,11 @@
 
 
 class MqClientExceptionClass(Exception):
-  pass
+  configDict = None
+
+class MqClientBaseClass():
+  def __init__(self, configDict):
+    self.configDict = configDict
+
+  def getType(self):
+    return self.configDict["Type"]
