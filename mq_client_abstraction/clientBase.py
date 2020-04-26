@@ -1,0 +1,4 @@
+
+
+class MqClientExceptionClass(Exception):
+  pass
