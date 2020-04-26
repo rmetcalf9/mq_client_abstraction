@@ -5,7 +5,7 @@
 ```
 {
   "Type": "Memory"
-  "destinationPrefix": - defaults to empty string
+  "DestinationPrefix": - defaults to empty string
 }
 ```
 

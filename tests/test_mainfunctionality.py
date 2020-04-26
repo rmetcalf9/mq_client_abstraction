@@ -24,3 +24,12 @@ class test_mainfunctionality(TestHelperSuperClass.testHelperSuperClass):
     mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
     self.assertEqual(mqClient.getType(),"Memory")
 
+  def test_initInvalidDestinationPrefixFails(self):
+    configDict = {
+      "Type": "Memory",
+      "DestinationPrefix": "fr%$£"
+    }
+    with self.assertRaises(Exception) as context:
+      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+    self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
+    self.assertEqual(str(context.exception),"Invalid DestinationPrefix")
