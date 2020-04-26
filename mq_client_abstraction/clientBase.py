@@ -1,4 +1,5 @@
 import time
+import queue
 
 class MqClientExceptionClass(Exception):
   pass
@@ -8,9 +9,10 @@ class MqClientProcessLoopTimeoutExceptionClass(MqClientExceptionClass):
 
 class MqClientBaseClass():
   destinationPrefix = None
-  subscriptions = {}
+  subscriptions = None
   def __init__(self, configDict):
     self.configDict = configDict
+    self.subscriptions = {}
     if "DestinationPrefix" in configDict:
       self.destinationPrefix = configDict["DestinationPrefix"]
     else:
@@ -36,6 +38,11 @@ class MqClientBaseClass():
     if destination in self.subscriptions:
       raise MqClientExceptionClass("Only supports single subscription per mq client")
     self.subscriptions[destination] = msgRecieveFunction
+
+  def subscribeDestinationToPythonQueue(self, destination, queue):
+    def msgRecieveFunction(destination, body):
+      queue.put(body)
+    self.subscribeToDestination(destination, msgRecieveFunction)
 
   # The process loop is for recievers that need to keep a loop running. It is not required for some types of
   #  client (Stomp) but is requried for others (Memory)

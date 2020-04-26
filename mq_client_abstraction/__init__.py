@@ -1,5 +1,5 @@
 
-from .clientBase import MqClientExceptionClass
+from .clientBase import MqClientExceptionClass, MqClientProcessLoopTimeoutExceptionClass
 from .main import createObjectStoreInstance
 
 from ._version import get_versions
