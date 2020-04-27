@@ -25,13 +25,13 @@ class MockConnectionObjectClass():
     return
   def connect(self, username, password, wait):
     return
-  def sendMessage(self, body, destination):
+  def send(self, body, destination):
     return
   def subscribe(self, destination, id, ack):
     return
   def set_listener(self, unknownParam, stompListener):
     self.stompListener = stompListener
-  def close(self):
+  def disconnect(self):
     return
 
   def getStompListener(self):

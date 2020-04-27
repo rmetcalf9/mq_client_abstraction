@@ -69,4 +69,4 @@ class ConnectionClass():
 
   def close(self, wait):
     self.closed = True
-    self.stompConnection.close()
+    self.stompConnection.disconnect()
