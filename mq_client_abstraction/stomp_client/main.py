@@ -8,6 +8,7 @@ def getFormattedConnectionDetails(connectionString):
   acceptedProtocols = ["stomp", "stomp+ssl"]
   if firstSplit[0] not in acceptedProtocols:
     raise MqClientExceptionClass("Invalid mq client config - Invalid ConnectionString (Bad Protocol)")
+
   secondSplit = firstSplit[1].split(":")
   if len(secondSplit) != 2:
     raise MqClientExceptionClass("Invalid mq client config - Invalid ConnectionString (Missing Port)")
@@ -41,7 +42,9 @@ class mainClass(MqClientBaseClass):
 
     self.connectionPool = ConnectionPoolClass({
       "FormattedConnectionDetails": getFormattedConnectionDetails(configDict["ConnectionString"]),
-      "Username": requiredInDict["Username"],
-      "Password": requiredInDict["Password"]
+      "Username": configDict["Username"],
+      "Password": configDict["Password"]
     })
 
+  def _sendStringMessage(self, internalDestination, body):
+    self.connectionPool.getConnection().sendStringMessage(internalDestination=internalDestination, body=body)

@@ -2,6 +2,9 @@ import time
 import queue
 import threading
 
+validDestinationPrefixes = ["/queue/"]
+
+
 class MqClientExceptionClass(Exception):
   pass
 
@@ -58,7 +61,7 @@ class MqClientBaseClass():
     return self.configDict["Type"]
 
   def validateDestination(self, destination, msg="Invalid Destination"):
-    invalidChars = ['_', ':', '/', '\\', '$', '%']
+    invalidChars = ['_', ':', '\\', '$', '%']
     for c in invalidChars:
       if c in destination:
         raise MqClientExceptionClass(msg)
@@ -141,8 +144,21 @@ class MqClientBaseClass():
   def _close(self, wait):
     pass #overriden by inherited classes incase they have logic
 
+  def ___getUsedPrefix(self, destination):
+    for x in validDestinationPrefixes:
+      if destination.startswith(x):
+        return x
+    return None
+
   def _mapToInternalDestination(self, destination):
-    return destination
+    usedPrefix = self.___getUsedPrefix(destination=destination)
+    if usedPrefix is None:
+      raise MqClientExceptionClass("Invalid Destination")
+    return usedPrefix + self.destinationPrefix + destination[len(usedPrefix):]
 
   def _mapFromInternalDestination(self, destination):
-    return destination
+    usedPrefix = self.___getUsedPrefix(destination=destination)
+    if usedPrefix is None:
+      raise MqClientExceptionClass("Invalid Destination")
+    return usedPrefix + destination[len(usedPrefix) + len(self.destinationPrefix):]
+

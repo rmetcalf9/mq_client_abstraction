@@ -6,6 +6,12 @@ import time
 
 clientTypesToTest = []
 clientTypesToTest.append({"Type": "Memory"})
+# clientTypesToTest.append({
+#   "Type": "Stomp",
+#   "Username": "TestUsername",
+#   "Password": "TestPassword",
+#   "ConnectionString": "stomp+ssl://aa:1234"
+# })
 
 
 class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
@@ -13,10 +19,10 @@ class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
   def test_sendMessage(self):
     for configDict in clientTypesToTest:
       mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
-      self.assertEqual(mqClient.getType(),"Memory")
+      self.assertEqual(mqClient.getType(),configDict["Type"])
 
       testMessage="asf435tyhbred3wvbr"
-      testDestination="aa"
+      testDestination="/queue/aa"
 
       class contextClass():
         waitingForResult = None
@@ -49,12 +55,11 @@ class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
   def test_sendMessagesToThreeDistenations(self):
     for configDict in clientTypesToTest:
       mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
-      self.assertEqual(mqClient.getType(),"Memory")
 
       testDestinations = {}
-      testDestinations["dest001"] = {"testMEssage001", "testMEssage002", "testMEssage003"}
-      testDestinations["dest002"] = {"testMEssage001", "testMEssage002", "testMEssage003"}
-      testDestinations["dest003"] = {"testMEssage001", "testMEssage002", "testMEssage003"}
+      testDestinations["/queue/dest001"] = {"testMEssage001", "testMEssage002", "testMEssage003"}
+      testDestinations["/queue/dest002"] = {"testMEssage001", "testMEssage002", "testMEssage003"}
+      testDestinations["/queue/dest003"] = {"testMEssage001", "testMEssage002", "testMEssage003"}
 
       class contextClass():
         unrecievedMessages = None
@@ -75,18 +80,18 @@ class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
       context = contextClass(testDestinations, testClass=self)
 
       def msgRecieveFunctionDest001(destination, body):
-        self.assertEqual(destination,"dest001", msg="Wrong recieve function called")
+        self.assertEqual(destination,list(testDestinations.keys())[0], msg="Wrong recieve function called")
         context.registerRecieved(destination=destination, body=body)
       def msgRecieveFunctionDest002(destination, body):
-        self.assertEqual(destination,"dest002", msg="Wrong recieve function called")
+        self.assertEqual(destination,list(testDestinations.keys())[1], msg="Wrong recieve function called")
         context.registerRecieved(destination=destination, body=body)
       def msgRecieveFunctionDest003(destination, body):
-        self.assertEqual(destination,"dest003", msg="Wrong recieve function called")
+        self.assertEqual(destination,list(testDestinations.keys())[2], msg="Wrong recieve function called")
         context.registerRecieved(destination=destination, body=body)
 
-      mqClient.subscribeToDestination(destination="dest001", msgRecieveFunction=msgRecieveFunctionDest001)
-      mqClient.subscribeToDestination(destination="dest002", msgRecieveFunction=msgRecieveFunctionDest002)
-      mqClient.subscribeToDestination(destination="dest003", msgRecieveFunction=msgRecieveFunctionDest003)
+      mqClient.subscribeToDestination(destination=list(testDestinations.keys())[0], msgRecieveFunction=msgRecieveFunctionDest001)
+      mqClient.subscribeToDestination(destination=list(testDestinations.keys())[1], msgRecieveFunction=msgRecieveFunctionDest002)
+      mqClient.subscribeToDestination(destination=list(testDestinations.keys())[2], msgRecieveFunction=msgRecieveFunctionDest003)
 
 
       for destination in testDestinations:
@@ -109,10 +114,9 @@ class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
   def test_sendMessageAndRecieveUsingQueue(self):
     for configDict in clientTypesToTest:
       mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
-      self.assertEqual(mqClient.getType(),"Memory")
 
       testMessage="asf435tyhbred3wvbr"
-      testDestination="aa"
+      testDestination="/queue/aa"
 
       recieveQueue = queue.Queue()
       mqClient.subscribeDestinationToPythonQueue(destination=testDestination, queue=recieveQueue)
@@ -136,10 +140,9 @@ class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
   def test_sendMessageAndRecieveUsingQueueInSeperareThread(self):
     for configDict in clientTypesToTest:
       mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
-      self.assertEqual(mqClient.getType(),"Memory")
 
       testMessage="asf435tyhbred3wvbr"
-      testDestination="aa"
+      testDestination="/queue/aa"
 
       recieveQueue = queue.Queue()
       mqClient.subscribeDestinationToPythonQueue(destination=testDestination, queue=recieveQueue)
