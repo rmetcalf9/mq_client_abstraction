@@ -14,14 +14,14 @@ or expressed as an environment variable:
 export APIAPP_OBJECTSTORECONFIG="{\"Type\":\"Memory\"}"
 ```
 
-## Storm Client
+## Stomp Client
 
 ```
 {
-  "Type": "Storm",
-  "destinationPrefix":
+  "Type": "Stomp",
+  "DestinationPrefix":
   "ConnectionString": "", # like stomp+ssl://aaa.mq.xxx.amazonaws.com:61614
-  "usernaame":
-  "password":
+  "Usernaame":
+  "Password":
 }
 ```

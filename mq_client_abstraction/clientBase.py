@@ -46,7 +46,7 @@ class MqClientBaseClass():
   recieveThread = None
   def __init__(self, configDict):
     self.configDict = configDict
-    self.subscriptions = {}
+    self.subscriptions = {} # key is internalDestination
     if "DestinationPrefix" in configDict:
       self.destinationPrefix = configDict["DestinationPrefix"]
     else:
@@ -64,14 +64,17 @@ class MqClientBaseClass():
         raise MqClientExceptionClass(msg)
 
   def sendStringMessage(self, destination, body):
-    self.validateDestination(destination=destination)
-    self._sendStringMessage(destination=destination, body=body)
+    internalDestination = self._mapToInternalDestination(destination)
+    self.validateDestination(destination=internalDestination)
+    self._sendStringMessage(internalDestination=internalDestination, body=body)
 
   def subscribeToDestination(self, destination, msgRecieveFunction):
-    self.validateDestination(destination=destination)
-    if destination in self.subscriptions:
-      raise MqClientExceptionClass("Only supports single subscription per mq client")
-    self.subscriptions[destination] = msgRecieveFunction
+    internalDestination = self._mapToInternalDestination(destination)
+    self.validateDestination(destination=internalDestination)
+    if internalDestination in self.subscriptions:
+      raise MqClientExceptionClass("mq client Only supports onesubscription per destination")
+    self.subscriptions[internalDestination] = msgRecieveFunction
+    self._registerSubscription(internalDestination=internalDestination)
 
   def subscribeDestinationToPythonQueue(self, destination, queue):
     def msgRecieveFunction(destination, body):
@@ -120,17 +123,26 @@ class MqClientBaseClass():
     self.recieveThread.start()
 
   # Functions called from derived class only
-  def processMessageCALLEDFROMDERIVEDONLY(self, destination, body):
-    if destination in self.subscriptions:
-      self.subscriptions[destination](destination=destination, body=body)
+  def processMessageCALLEDFROMDERIVEDONLY(self, internalDestination, body):
+    if internalDestination in self.subscriptions:
+      self.subscriptions[internalDestination](destination=self._mapFromInternalDestination(internalDestination), body=body)
 
   # Functions implemented by derived classes
 
-  def _sendStringMessage(self, destination, body):
+  def _sendStringMessage(self, internalDestination, body):
     raise Exception('_sendStringMessage Not Overridden')
+
+  def _registerSubscription(self, internalDestination):
+    pass #overriden by inherited classes incase they have logic
 
   def _processLoopIteration(self):
     pass #overriden by inherited classes incase they have logic
 
   def _close(self, wait):
     pass #overriden by inherited classes incase they have logic
+
+  def _mapToInternalDestination(self, destination):
+    return destination
+
+  def _mapFromInternalDestination(self, destination):
+    return destination

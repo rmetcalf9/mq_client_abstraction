@@ -9,10 +9,10 @@ class mainClass(MqClientBaseClass):
     # Using synchronised queue https://docs.python.org/3.6/library/queue.html
     self.messageQueue = queue.Queue()
 
-  def _sendStringMessage(self, destination, body):
-    self.messageQueue.put((destination, body))
+  def _sendStringMessage(self, internalDestination, body):
+    self.messageQueue.put((internalDestination, body))
 
   def _processLoopIteration(self):
     while not self.messageQueue.empty():
-      (destination, body) = self.messageQueue.get()
-      self.processMessageCALLEDFROMDERIVEDONLY(destination, body)
+      (internalDestination, body) = self.messageQueue.get()
+      self.processMessageCALLEDFROMDERIVEDONLY(internalDestination=internalDestination, body=body)

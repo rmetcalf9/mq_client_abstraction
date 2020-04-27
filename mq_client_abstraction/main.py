@@ -1,6 +1,7 @@
 from .clientBase import MqClientExceptionClass
 
 from .memory_client import mainClass as memoryMainClass
+from .stomp_client import mainClass as stompMainClass
 
 def createObjectStoreInstance(configDict):
   if configDict is None:
@@ -15,6 +16,7 @@ def createObjectStoreInstance(configDict):
 
   constructors = {}
   constructors["Memory"] = memoryMainClass
+  constructors["Stomp"] = stompMainClass
 
   if configDict["Type"] not in constructors:
     print("Trying to create object store type " + configDict["Type"])
