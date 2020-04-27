@@ -1,2 +1,2 @@
 stomp.py==6.0.0
-mq-client-abstraction==0.0.6
+mq-client-abstraction==0.0.7
