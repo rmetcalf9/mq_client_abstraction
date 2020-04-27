@@ -11,7 +11,7 @@ def getFromEnvironment(envVariableName):
 
 def getConDetailsFromEnvironment():
   return {
-    "stompConnectionString": "stomp+ssl://b-97b40b19-ce09-4d3d-94bc-3872d483cbaf-1.mq.eu-west-2.amazonaws.com:61614",
+    "stompConnectionString": getFromEnvironment("RJMACTIVEMQ_CONNSTR"),
 
     "username": getFromEnvironment("RJMACTIVEMQ_USER"),
     "password": getFromEnvironment("RJMACTIVEMQ_PASS")
