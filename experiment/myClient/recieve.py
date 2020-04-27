@@ -1,31 +1,17 @@
 import Common
-
-print("Start of reciever")
-
+import queue
 import time
-import sys
 
-import stomp
+mqClient = Common.getMqClient()
 
-connectionDetails = Common.getConDetailsFromEnvironment()
+recieveQueue = queue.Queue()
 
-conn = Common.StormConnectionClass(connectionDetails)
+mqClient.subscribeDestinationToPythonQueue(destination="/queue/test", queue=recieveQueue)
+mqClient.startRecieveThread(sleepTime=0.1)
+time.sleep(0.3)
+mqClient.close(wait=True)
+while not recieveQueue.empty():
+  (message) = recieveQueue.get()
+  print("Recieved ", message)
 
-def messageProcessingFunction(headers, message):
-  print('Main recieviecrasdsreceived a message "%s"' % message)
-
-conn.subscribe(destination='/queue/test', messageProcessingFunction=messageProcessingFunction)
-
-##conn.set_listener('', MyListener())
-##conn.subscribe(destination='/queue/test', id=1, ack='auto')
-
-try:
-    while True:
-        time.sleep(10)
-except KeyboardInterrupt:
-    print('interrupted - so exiting!')
-
-
-conn.close()
-
-print("Reciever terminated")
+# python3 ./recieve.py

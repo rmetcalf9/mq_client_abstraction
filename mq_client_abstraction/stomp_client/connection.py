@@ -44,6 +44,8 @@ class ConnectionClass():
     self.connected = True
 
   def _onDisconnected(self):
+    if self.closed:
+      return
     self.connected = False
     # If we have subscribers then we must reconnect and register all the subscriptions again
     #  otherwise we cna wait and only reconnect when sendStringMessage or registerSubscription is called
@@ -62,7 +64,7 @@ class ConnectionClass():
   def registerSubscription(self, internalDestination):
     self._connectIfNeeded()
     if len(self.registeredSubscriptions) == 0:
-      self.stompConnection.set_listener('', StompConnectionListenerClass(recieveFunction=self.recieveFunction, disconnectedFunciton=self._onDisconnected))
+      self.stompConnection.set_listener('', StompConnectionListenerClass(recieveFunction=self.recieveFunction, disconnectedFunction=self._onDisconnected))
     self.registeredSubscriptions.append(internalDestination)
     self.stompConnection.subscribe(destination=internalDestination, id=1, ack='auto')
 
