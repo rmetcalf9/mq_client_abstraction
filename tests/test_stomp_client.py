@@ -143,3 +143,13 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       self.assertEqual(mqClient._mapToInternalDestination(x["destination"]), x["internaldestination"], msg="Map to destination failed")
       self.assertEqual(mqClient._mapFromInternalDestination(x["internaldestination"]), x["destination"], msg="Map from destination failed")
 
+  def test_initWithAmazonListConnectionString(self):
+    configDict = {
+      "Type": "Stomp",
+      "Username": "TestUsername",
+      "Password": "TestPassword",
+      "ConnectionString": "stomp+ssl://b-xx-xx-xx-xx-xx-1.mq.eu-west-2.amazonaws.com:61614"
+    }
+    mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+
+

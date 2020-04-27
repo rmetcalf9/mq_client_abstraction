@@ -57,7 +57,7 @@ class ConnectionClass():
     if self.closed:
       raise MqClientExceptionClass("Trying to send message on closed STOMP connection")
     self._connectIfNeeded()
-    self.stompConnection.sendMessage(body=body, destination=internalDestination)
+    self.stompConnection.send(body=body, destination=internalDestination)
 
   def registerSubscription(self, internalDestination):
     self._connectIfNeeded()
