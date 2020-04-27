@@ -7,15 +7,22 @@ from .connection import ConnectionClass
 
 class ConnectionPoolClass():
   fullConnectionDetails = None # includes username and password
+  recieveFunction = None # function to call when messages are recieved
 
   connections = None
 
-  def __init__(self, fullConnectionDetails):
+  def __init__(self, fullConnectionDetails, recieveFunction):
     self.fullConnectionDetails = fullConnectionDetails
+    self.recieveFunction = recieveFunction
 
     self.connections = []
 
   def getConnection(self):
     if len(self.connections)==0:
-      self.connections.append(ConnectionClass(self.fullConnectionDetails))
+      self.connections.append(ConnectionClass(self.fullConnectionDetails, recieveFunction=self.recieveFunction))
     return self.connections[0]
+
+  def close(self, wait):
+    for con in self.connections:
+      con.close(wait=wait)
+    self.connections = ()

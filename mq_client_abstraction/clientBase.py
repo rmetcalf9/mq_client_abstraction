@@ -125,12 +125,16 @@ class MqClientBaseClass():
     self.recieveThread = RecieveThread(sleepTime, loopIterationFunction=self.processLoopIteration)
     self.recieveThread.start()
 
+  #********************************************************
   # Functions called from derived class only
+  #********************************************************
   def processMessageCALLEDFROMDERIVEDONLY(self, internalDestination, body):
     if internalDestination in self.subscriptions:
       self.subscriptions[internalDestination](destination=self._mapFromInternalDestination(internalDestination), body=body)
 
+  #********************************************************
   # Functions implemented by derived classes
+  #********************************************************
 
   def _sendStringMessage(self, internalDestination, body):
     raise Exception('_sendStringMessage Not Overridden')

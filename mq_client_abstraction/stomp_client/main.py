@@ -40,11 +40,22 @@ class mainClass(MqClientBaseClass):
       if x not in configDict:
         raise MqClientExceptionClass("Invalid mq client config - Missing " + x)
 
-    self.connectionPool = ConnectionPoolClass({
-      "FormattedConnectionDetails": getFormattedConnectionDetails(configDict["ConnectionString"]),
-      "Username": configDict["Username"],
-      "Password": configDict["Password"]
-    })
+    self.connectionPool = ConnectionPoolClass(
+      fullConnectionDetails= {
+        "FormattedConnectionDetails": getFormattedConnectionDetails(configDict["ConnectionString"]),
+        "Username": configDict["Username"],
+        "Password": configDict["Password"],
+      },
+      recieveFunction=self.processMessageCALLEDFROMDERIVEDONLY
+    )
 
   def _sendStringMessage(self, internalDestination, body):
     self.connectionPool.getConnection().sendStringMessage(internalDestination=internalDestination, body=body)
+
+  def _registerSubscription(self, internalDestination):
+    self.connectionPool.getConnection().registerSubscription(
+      internalDestination=internalDestination
+    )
+
+  def _close(self, wait):
+    self.connectionPool.close(wait=wait)
