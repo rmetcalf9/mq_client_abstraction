@@ -4,22 +4,27 @@ import copy
 import queue
 import time
 
+from eachclientWrapperFunctionsMemory import get as MemoryWraperFnsGet
+
 clientTypesToTest = []
-clientTypesToTest.append({"Type": "Memory"})
-# clientTypesToTest.append({
+clientTypesToTest.append({
+  "config": {"Type": "Memory"},
+  "wrapperFunctions": MemoryWraperFnsGet()
+})
+# clientTypesToTest.append({"config": {
 #   "Type": "Stomp",
 #   "Username": "TestUsername",
 #   "Password": "TestPassword",
 #   "ConnectionString": "stomp+ssl://aa:1234"
-# })
+# }})
 
 
 class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
 
   def test_sendMessage(self):
-    for configDict in clientTypesToTest:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
-      self.assertEqual(mqClient.getType(),configDict["Type"])
+    for clientTypeDict in clientTypesToTest:
+      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=clientTypeDict["config"])
+      self.assertEqual(mqClient.getType(),clientTypeDict["config"]["Type"])
 
       testMessage="asf435tyhbred3wvbr"
       testDestination="/queue/aa"
@@ -38,23 +43,20 @@ class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
 
       def exitFunction():
         return not context.waitingForResult
-      mqClient.subscribeToDestination(destination=testDestination, msgRecieveFunction=msgRecieveFunction)
+      clientTypeDict["wrapperFunctions"]["subscribeToDestination"](mqClient=mqClient, destination=testDestination, msgRecieveFunction=msgRecieveFunction)
 
-      mqClient.sendStringMessage(destination=testDestination, body=testMessage)
+      clientTypeDict["wrapperFunctions"]["sendStringMessage"](mqClient=mqClient, destination=testDestination, body=testMessage)
 
       #Run the process loop
       # for recieving messages
-      mqClient.processLoop(
-        exitFunction=exitFunction,
-        timeoutInSeconds=1
-      )
-      mqClient.close()
+      clientTypeDict["wrapperFunctions"]["processLoop"](mqClient=mqClient, exitFunction=exitFunction, timeoutInSeconds=1)
+      clientTypeDict["wrapperFunctions"]["close"](mqClient=mqClient, wait=True)
 
       self.assertEqual(context.waitingForResult,False, msg="Subscribed function never called")
 
   def test_sendMessagesToThreeDistenations(self):
-    for configDict in clientTypesToTest:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+    for clientTypeDict in clientTypesToTest:
+      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=clientTypeDict["config"])
 
       testDestinations = {}
       testDestinations["/queue/dest001"] = {"testMEssage001", "testMEssage002", "testMEssage003"}
@@ -89,71 +91,64 @@ class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
         self.assertEqual(destination,list(testDestinations.keys())[2], msg="Wrong recieve function called")
         context.registerRecieved(destination=destination, body=body)
 
-      mqClient.subscribeToDestination(destination=list(testDestinations.keys())[0], msgRecieveFunction=msgRecieveFunctionDest001)
-      mqClient.subscribeToDestination(destination=list(testDestinations.keys())[1], msgRecieveFunction=msgRecieveFunctionDest002)
-      mqClient.subscribeToDestination(destination=list(testDestinations.keys())[2], msgRecieveFunction=msgRecieveFunctionDest003)
-
+      clientTypeDict["wrapperFunctions"]["subscribeToDestination"](mqClient=mqClient, destination=list(testDestinations.keys())[0], msgRecieveFunction=msgRecieveFunctionDest001)
+      clientTypeDict["wrapperFunctions"]["subscribeToDestination"](mqClient=mqClient, destination=list(testDestinations.keys())[1], msgRecieveFunction=msgRecieveFunctionDest002)
+      clientTypeDict["wrapperFunctions"]["subscribeToDestination"](mqClient=mqClient, destination=list(testDestinations.keys())[2], msgRecieveFunction=msgRecieveFunctionDest003)
 
       for destination in testDestinations:
         for message in testDestinations[destination]:
-          mqClient.sendStringMessage(destination=destination, body=message)
+          clientTypeDict["wrapperFunctions"]["sendStringMessage"](mqClient=mqClient, destination=destination,body=message)
 
       def exitFunction():
         return context.getNumRemaingMessages() == 0
 
-      mqClient.processLoop(
-        exitFunction=exitFunction,
-        timeoutInSeconds=1
-      )
-      mqClient.close()
+      clientTypeDict["wrapperFunctions"]["processLoop"](mqClient=mqClient, exitFunction=exitFunction, timeoutInSeconds=1)
+      clientTypeDict["wrapperFunctions"]["close"](mqClient=mqClient, wait=True)
 
 
       for destination in context.unrecievedMessages:
         self.assertEqual(len(context.unrecievedMessages[destination]),0,msg="Messeges not recieved for " + destination)
 
   def test_sendMessageAndRecieveUsingQueue(self):
-    for configDict in clientTypesToTest:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+    for clientTypeDict in clientTypesToTest:
+      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=clientTypeDict["config"])
 
       testMessage="asf435tyhbred3wvbr"
       testDestination="/queue/aa"
 
       recieveQueue = queue.Queue()
-      mqClient.subscribeDestinationToPythonQueue(destination=testDestination, queue=recieveQueue)
+      clientTypeDict["wrapperFunctions"]["subscribeDestinationToPythonQueue"](mqClient=mqClient, destination=testDestination, queue=recieveQueue)
 
-      mqClient.sendStringMessage(destination=testDestination, body=testMessage)
+      clientTypeDict["wrapperFunctions"]["sendStringMessage"](mqClient=mqClient, destination=testDestination, body=testMessage)
 
       try:
-        mqClient.processLoop(
-          exitFunction=None,
-          timeoutInSeconds=0.01
-        )
+        clientTypeDict["wrapperFunctions"]["processLoop"](mqClient=mqClient, exitFunction=None,timeoutInSeconds=0.01)
       except mq_client_abstraction.MqClientProcessLoopTimeoutExceptionClass:
         pass #ignore timeout
-      mqClient.close()
+      clientTypeDict["wrapperFunctions"]["close"](mqClient=mqClient, wait=True)
 
       self.assertEqual(recieveQueue.qsize(), 1)
       msgRecieved = recieveQueue.get()
       self.assertEqual(msgRecieved, testMessage, msg="Wrong message recieved")
 
 
-  def test_sendMessageAndRecieveUsingQueueInSeperareThread(self):
-    for configDict in clientTypesToTest:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+  def test_sendMessageAndRecieveUsingQueueInSeperateThread(self):
+    for clientTypeDict in clientTypesToTest:
+      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=clientTypeDict["config"])
 
       testMessage="asf435tyhbred3wvbr"
       testDestination="/queue/aa"
 
       recieveQueue = queue.Queue()
-      mqClient.subscribeDestinationToPythonQueue(destination=testDestination, queue=recieveQueue)
+      clientTypeDict["wrapperFunctions"]["subscribeDestinationToPythonQueue"](mqClient=mqClient, destination=testDestination, queue=recieveQueue)
 
-      mqClient.sendStringMessage(destination=testDestination, body=testMessage)
+      clientTypeDict["wrapperFunctions"]["sendStringMessage"](mqClient=mqClient, destination=testDestination, body=testMessage)
 
-      mqClient.startRecieveThread(sleepTime=0.1)
+      clientTypeDict["wrapperFunctions"]["startRecieveThread"](mqClient=mqClient, sleepTime=0.1)
 
       time.sleep(0.3)
 
-      mqClient.close(wait=True)
+      clientTypeDict["wrapperFunctions"]["close"](mqClient=mqClient, wait=True)
 
       self.assertEqual(recieveQueue.qsize(), 1)
       msgRecieved = recieveQueue.get()
