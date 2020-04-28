@@ -40,7 +40,7 @@ class RecieveThread(threading.Thread):
       self.stopped = True
     except Exception as Excep:
       print("MQ CLient thread throwing an Exception")
-      self.thrownException = Excep
+      self.thrownException = MqClientThreadHealthCheckExceptionClass("MQ Client thread threw an exception - " +  str(self.selfthrownException))
       raise Excep
 
   def close(self, wait):
@@ -59,7 +59,7 @@ class RecieveThread(threading.Thread):
       if not self.isAlive():
         raise MqClientThreadHealthCheckExceptionClass("MQ Client thread is no longer alive")
     if self.selfthrownException is not None:
-      raise MqClientThreadHealthCheckExceptionClass("MQ Client thread threw an exception - " +  str(self.selfthrownException))
+      raise self.selfthrownException
 
 class MqClientBaseClass():
   destinationPrefix = None
@@ -145,7 +145,7 @@ class MqClientBaseClass():
 
   def threadHealthCheck(self):
     #Check the health of the thread and raise an exception if there is a problem
-    if self.recieveThread is not None:
+    if self.recieveThread is None:
       raise MqClientThreadHealthCheckExceptionClass("MQ Client thread was never started")
     self.recieveThread.HealthCheck()
 
