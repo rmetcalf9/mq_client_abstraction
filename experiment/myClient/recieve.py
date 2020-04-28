@@ -1,6 +1,7 @@
 import Common
 import queue
 import time
+import sys
 
 mqClient = Common.getMqClient()
 
@@ -52,18 +53,35 @@ def recieveUsingProcessLoop():
 
   mqClient.subscribeToDestination(destination=destinationToTest, msgRecieveFunction=msgRecieveFunction)
 
+  def functionToRunOnEachIteration():
+    print("Loop iteration function")
+
   mqClient.processLoop(
     exitFunction=None,
     timeoutInSeconds=None,
-    sleepDurationInSeconds=0.1
+    sleepDurationInSeconds=0.1,
+    functionToRunOnEachIteration=functionToRunOnEachIteration
   )
 
   mqClient.close(wait=True)
 
 print("Started")
-#recieveUsingThread()
-#recieveUsingApplicationProvidedProcessLoop()
-recieveUsingProcessLoop()
+
+if (len(sys.argv)==1):
+  recieveUsingThread()
+elif (len(sys.argv)==2):
+  if sys.argv[1]=='A':
+    recieveUsingThread()
+  elif sys.argv[1]=='B':
+    recieveUsingApplicationProvidedProcessLoop()
+  elif sys.argv[1]=='C':
+    recieveUsingProcessLoop()
+  else:
+    print("Arge must be A, B, or C")
+else:
+  print("Only one arg")
+
+
 print("Finished")
 
 # python3 ./recieve.py

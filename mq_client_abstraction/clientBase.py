@@ -116,7 +116,8 @@ class MqClientBaseClass():
     self,
     exitFunction,
     timeoutInSeconds=None,
-    sleepDurationInSeconds=0.1
+    sleepDurationInSeconds=0.1,
+    functionToRunOnEachIteration=None
   ):
     running = True
     def neverExitFunction():
@@ -127,8 +128,9 @@ class MqClientBaseClass():
       if exitFunction():
         running = False
       else:
-        self.processLoopHealthCheck()
         self.processLoopIteration()
+        if functionToRunOnEachIteration is not None:
+          functionToRunOnEachIteration()
         time.sleep(sleepDurationInSeconds)
         if timeoutInSeconds is not None:
           timeoutInSeconds -= sleepDurationInSeconds
@@ -136,6 +138,7 @@ class MqClientBaseClass():
             raise MqClientProcessLoopTimeoutExceptionClass("Process loop timeout reached")
 
   def processLoopIteration(self):
+    self.processLoopHealthCheck()
     self._processLoopIteration()
 
   # Used for when application provides health check
