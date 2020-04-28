@@ -39,8 +39,8 @@ class RecieveThread(threading.Thread):
       print('MQ Client recieve thread terminating')
       self.stopped = True
     except Exception as Excep:
-      print("MQ CLient thread throwing an Exception")
-      self.thrownException = MqClientThreadHealthCheckExceptionClass("MQ Client thread threw an exception - " +  str(self.selfthrownException))
+      print("MQ CLient recieve thread throwing an Exception")
+      self.thrownException = MqClientThreadHealthCheckExceptionClass("MQ Client recieve thread threw an exception - " +  str(self.selfthrownException))
       raise Excep
 
   def close(self, wait):
@@ -147,7 +147,7 @@ class MqClientBaseClass():
     #Check the health of the thread and raise an exception if there is a problem
     if self.recieveThread is None:
       raise MqClientThreadHealthCheckExceptionClass("MQ Client thread was never started")
-    self.recieveThread.HealthCheck()
+    self.recieveThread.healthCheck()
 
   #********************************************************
   # Functions called from derived class only
