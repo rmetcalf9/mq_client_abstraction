@@ -11,30 +11,40 @@ class MqClientExceptionClass(Exception):
 class MqClientProcessLoopTimeoutExceptionClass(MqClientExceptionClass):
   pass
 
+class MqClientThreadHealthCheckExceptionClass(MqClientExceptionClass):
+  pass
+
 class RecieveThread(threading.Thread):
   running = None
   sleepTime = None
   stopped = None
   loopIterationFunction = None
+  thrownException = None
   def __init__(self, sleepTime, loopIterationFunction):
     self.running = True
     self.sleepTime = sleepTime
     self.stopped = False
     self.loopIterationFunction = loopIterationFunction
+    self.thrownException = None
 
     super(RecieveThread, self).__init__()
 
   def run(self):
-    self.running = True
-    print('MQ Client recieve thread starting')
-    while self.running:
-      self.loopIterationFunction()
-      time.sleep(self.sleepTime)
-    print('MQ Client recieve thread terminating')
-    self.stopped = True
-
+    try:
+      self.running = True
+      print('MQ Client recieve thread starting')
+      while self.running:
+        self.loopIterationFunction()
+        time.sleep(self.sleepTime)
+      print('MQ Client recieve thread terminating')
+      self.stopped = True
+    except Exception as Excep:
+      print("MQ CLient thread throwing an Exception")
+      self.thrownException = Excep
+      raise Excep
 
   def close(self, wait):
+    #Run in controller thread to stop subthread
     if self.stopped:
       raise MqClientExceptionClass("Closing thread twice")
     self.stopped = False
@@ -42,6 +52,14 @@ class RecieveThread(threading.Thread):
     if wait:
       while self.stopped == False:
         time.sleep(self.sleepTime)
+
+  def healthCheck(self):
+    #Run in controller thread to raise any exceptions
+    if self.running:
+      if not self.isAlive():
+        raise MqClientThreadHealthCheckExceptionClass("MQ Client thread is no longer alive")
+    if self.selfthrownException is not None:
+      raise MqClientThreadHealthCheckExceptionClass("MQ Client thread threw an exception - " +  str(self.selfthrownException))
 
 class MqClientBaseClass():
   destinationPrefix = None
@@ -124,6 +142,12 @@ class MqClientBaseClass():
       raise MqClientExceptionClass("Trying to start recieve thread twice")
     self.recieveThread = RecieveThread(sleepTime, loopIterationFunction=self.processLoopIteration)
     self.recieveThread.start()
+
+  def threadHealthCheck(self):
+    #Check the health of the thread and raise an exception if there is a problem
+    if self.recieveThread is not None:
+      raise MqClientThreadHealthCheckExceptionClass("MQ Client thread was never started")
+    self.recieveThread.HealthCheck()
 
   #********************************************************
   # Functions called from derived class only
