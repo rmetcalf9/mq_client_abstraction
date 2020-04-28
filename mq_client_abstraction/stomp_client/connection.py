@@ -68,6 +68,7 @@ class ConnectionClass():
           print("Connection retry limit reached")
           raise exeptionRaised
         retriesRemaining = retriesRemaining - 1
+        print("Waiting ", secondsBetweenTries, " seconds before next connection attempt")
         time.sleep(secondsBetweenTries)
         secondsBetweenTries = secondsBetweenTries * self.reconnectFadeoffFactor
 
@@ -85,7 +86,7 @@ class ConnectionClass():
       if len(self.registeredSubscriptions) == 0:
         return
       self.retryWrapperAround_connectIfNeeded()
-      for internalDestination in self.registeredSubscriptions():
+      for internalDestination in self.registeredSubscriptions:
         self.stompConnection.subscribe(destination=internalDestination, id=1, ack='auto')
     except Exception as excepti:
       self.thrownException = MqClientThreadHealthCheckExceptionClass("Exception thrown in stomp")

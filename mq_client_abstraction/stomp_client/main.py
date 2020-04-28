@@ -41,13 +41,13 @@ class mainClass(MqClientBaseClass):
       if configDict["skipConnectionCheck"] == True:
         self.skipConnectionCheck = True
 
-    reconnectMaxRetries = 6
+    reconnectMaxRetries = 9
     if "reconnectMaxRetries" in configDict:
       reconnectMaxRetries = configDict["reconnectMaxRetries"]
     reconectInitialSecondsBetweenTries = 2
     if "reconectInitialSecondsBetweenTries" in configDict:
       reconectInitialSecondsBetweenTries = configDict["reconectInitialSecondsBetweenTries"]
-    reconnectFadeoffFactor = 4
+    reconnectFadeoffFactor = 1.5
     if "reconnectFadeoffFactor" in configDict:
       reconnectFadeoffFactor = configDict["reconnectFadeoffFactor"]
 

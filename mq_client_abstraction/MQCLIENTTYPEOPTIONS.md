@@ -23,9 +23,10 @@ export APIAPP_OBJECTSTORECONFIG="{\"Type\":\"Memory\"}"
   "ConnectionString": "", # like stomp+ssl://aaa.mq.xxx.amazonaws.com:61614
   "Usernaame":
   "Password":
-  "skipConnectionCheck": defaults to 6
+  "skipConnectionCheck": defaults to false
   "reconectInitialSecondsBetweenTries" : defaults to 2
-  "reconnectFadeoffFactor" defaults to 4
+  "reconnectFadeoffFactor" defaults to 1.5
+  "reconnectMaxRetries": defaults to 9
 
 }
 ```
