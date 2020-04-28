@@ -2,6 +2,12 @@ import time
 import queue
 import threading
 
+# 3 ways or running:
+
+# Thread based
+# process loop function provided by mq_client
+# process loop provided by caller
+
 validDestinationPrefixes = ["/queue/"]
 
 
@@ -121,7 +127,7 @@ class MqClientBaseClass():
       if exitFunction():
         running = False
       else:
-        self._healthCheck()
+        self.processLoopHealthCheck()
         self.processLoopIteration()
         time.sleep(sleepDurationInSeconds)
         if timeoutInSeconds is not None:
@@ -131,6 +137,10 @@ class MqClientBaseClass():
 
   def processLoopIteration(self):
     self._processLoopIteration()
+
+  # Used for when application provides health check
+  def processLoopHealthCheck(self):
+    self._healthCheck()
 
   def close(self, wait=False):
     #if wait is true then hang until threads etc are stopped

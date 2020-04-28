@@ -7,6 +7,7 @@ mqClient = Common.getMqClient()
 destinationToTest="/queue/test"
 
 def recieveUsingThread():
+  print("recieveUsingThread")
   recieveQueue = queue.Queue()
   mqClient.subscribeDestinationToPythonQueue(destination=destinationToTest, queue=recieveQueue)
   mqClient.startRecieveThread(sleepTime=0.1)
@@ -25,24 +26,44 @@ def recieveUsingThread():
   mqClient.close(wait=True)
 
 
-def recieveUsingProcess():
+def recieveUsingApplicationProvidedProcessLoop():
+  print("recieveUsingApplicationProvidedProcessLoop")
   def msgRecieveFunction(destination, body):
     print("Recieved ", body, " sent to " , destination)
 
   mqClient.subscribeToDestination(destination=destinationToTest, msgRecieveFunction=msgRecieveFunction)
 
+  it = 1
   try:
       while True:
-          time.sleep(10)
+        print("process loop", it)
+        mqClient.processLoopHealthCheck()
+        it = it + 1
+        time.sleep(1)
   except KeyboardInterrupt:
       print('interrupted - so exiting!')
 
   mqClient.close(wait=True)
 
+def recieveUsingProcessLoop():
+  print("recieveUsingProcessLoop")
+  def msgRecieveFunction(destination, body):
+    print("Recieved ", body, " sent to " , destination)
+
+  mqClient.subscribeToDestination(destination=destinationToTest, msgRecieveFunction=msgRecieveFunction)
+
+  mqClient.processLoop(
+    exitFunction=None,
+    timeoutInSeconds=None,
+    sleepDurationInSeconds=0.1
+  )
+
+  mqClient.close(wait=True)
 
 print("Started")
 #recieveUsingThread()
-recieveUsingProcess()
+#recieveUsingApplicationProvidedProcessLoop()
+recieveUsingProcessLoop()
 print("Finished")
 
 # python3 ./recieve.py
