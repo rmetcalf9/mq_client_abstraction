@@ -149,7 +149,13 @@ class MqClientBaseClass():
     if self.recieveThread is None:
       raise MqClientThreadHealthCheckExceptionClass("MQ Client thread was never started")
     self.recieveThread.healthCheck()
-    self._healthCheck()
+    try:
+      self._healthCheck()
+    except Exception as excpi:
+      # Adapter health check has failed.
+      #  if clientBase thread is still running it needs to be stopped or the application will not terminate
+      self.recieveThread.close(wait=True)
+      raise excpi
 
   #********************************************************
   # Functions called from derived class only
