@@ -31,3 +31,7 @@ class ConnectionPoolClass():
     for con in self.connections:
       con.close(wait=wait)
     self.connections = ()
+
+  def healthCheck(self):
+    for con in self.connections:
+      con.healthCheck()

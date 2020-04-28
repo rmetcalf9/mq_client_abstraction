@@ -1,16 +1,18 @@
 import stomp
 
 class StompConnectionListenerClass(stomp.ConnectionListener):
-  recieveFunction = None
+  messageFunction = None
   disconnectedFunction = None
+  errorFunction = None
 
-  def __init__(self, recieveFunction, disconnectedFunction):
-    self.recieveFunction = recieveFunction
+  def __init__(self, messageFunction, disconnectedFunction, errorFunction):
+    self.messageFunction = messageFunction
     self.disconnectedFunction = disconnectedFunction
+    self.errorFunction = errorFunction
 
   def on_error(self, headers, message):
-    raise Exception("Error", message)
+    errorFunction(headers=headers, message=message)
   def on_message(self, headers, message):
-    self.recieveFunction(internalDestination=headers["destination"], body=message)
+    self.messageFunction(headers=headers, message=message)
   def on_disconnected(self):
       self.disconnectedFunction()

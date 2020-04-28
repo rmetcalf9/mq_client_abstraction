@@ -10,6 +10,8 @@ class ConnectionClass():
   recieveFunction = None
   registeredSubscriptions = None
   connected = None
+  thrownException = None
+
 
   def __init__(self, fullConnectionDetails, recieveFunction):
     self.closed = False
@@ -17,6 +19,7 @@ class ConnectionClass():
     self.recieveFunction = recieveFunction
     self.registeredSubscriptions = []
     self.connected = False
+    self.thrownException = None
 
     self.stompConnection = stomp.Connection(
       host_and_ports=[(self.fullConnectionDetails["FormattedConnectionDetails"]["Url"], self.fullConnectionDetails["FormattedConnectionDetails"]["Port"])])
@@ -43,17 +46,29 @@ class ConnectionClass():
     )
     self.connected = True
 
+  def _onError(self, headers, message):
+    self.thrownException = Exception("STOMP onError called - " + message)
+
   def _onDisconnected(self):
-    if self.closed:
-      return
-    self.connected = False
-    # If we have subscribers then we must reconnect and register all the subscriptions again
-    #  otherwise we cna wait and only reconnect when sendStringMessage or registerSubscription is called
-    if len(self.registeredSubscriptions) == 0:
-      return
-    self._connectIfNeeded()
-    for internalDestination in self.registeredSubscriptions():
-      self.stompConnection.subscribe(destination=internalDestination, id=1, ack='auto')
+    try:
+      if self.closed:
+        return
+      self.connected = False
+      # If we have subscribers then we must reconnect and register all the subscriptions again
+      #  otherwise we cna wait and only reconnect when sendStringMessage or registerSubscription is called
+      if len(self.registeredSubscriptions) == 0:
+        return
+      self._connectIfNeeded()
+      for internalDestination in self.registeredSubscriptions():
+        self.stompConnection.subscribe(destination=internalDestination, id=1, ack='auto')
+    except Exception as excepti:
+      self.thrownException = excepti
+
+  def _onMessage(self, headers, message):
+    try:
+      self.recieveFunction(internalDestination=headers["destination"], body=message)
+    except Exception as excepti:
+      self.thrownException = excepti
 
   def sendStringMessage(self, internalDestination, body):
     if self.closed:
@@ -64,7 +79,14 @@ class ConnectionClass():
   def registerSubscription(self, internalDestination):
     self._connectIfNeeded()
     if len(self.registeredSubscriptions) == 0:
-      self.stompConnection.set_listener('', StompConnectionListenerClass(recieveFunction=self.recieveFunction, disconnectedFunction=self._onDisconnected))
+      self.stompConnection.set_listener(
+        '',
+        StompConnectionListenerClass(
+          messageFunction=self._onMessage,
+          disconnectedFunction=self._onDisconnected,
+          errorFunction = self._onError
+        )
+      )
     self.registeredSubscriptions.append(internalDestination)
     self.stompConnection.subscribe(destination=internalDestination, id=1, ack='auto')
 
@@ -72,3 +94,7 @@ class ConnectionClass():
   def close(self, wait):
     self.closed = True
     self.stompConnection.disconnect()
+
+  def healthCheck(self):
+    if self.thrownException is not None:
+      raise self.thrownException

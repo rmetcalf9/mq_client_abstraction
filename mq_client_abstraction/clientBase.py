@@ -121,6 +121,7 @@ class MqClientBaseClass():
       if exitFunction():
         running = False
       else:
+        self._healthCheck()
         self.processLoopIteration()
         time.sleep(sleepDurationInSeconds)
         if timeoutInSeconds is not None:
@@ -148,6 +149,7 @@ class MqClientBaseClass():
     if self.recieveThread is None:
       raise MqClientThreadHealthCheckExceptionClass("MQ Client thread was never started")
     self.recieveThread.healthCheck()
+    self._healthCheck()
 
   #********************************************************
   # Functions called from derived class only
@@ -190,3 +192,5 @@ class MqClientBaseClass():
       raise MqClientExceptionClass("Invalid Destination")
     return usedPrefix + destination[len(usedPrefix) + len(self.destinationPrefix):]
 
+  def _healthCheck(self):
+    pass #Overridden for derived classes with threads to allow them to bubble exceptions to main thread

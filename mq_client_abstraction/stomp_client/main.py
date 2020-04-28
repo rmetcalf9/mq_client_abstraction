@@ -66,3 +66,6 @@ class mainClass(MqClientBaseClass):
 
   def _close(self, wait):
     self.connectionPool.close(wait=wait)
+
+  def _healthCheck(self):
+    self.connectionPool.healthCheck()
