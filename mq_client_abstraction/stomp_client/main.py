@@ -32,8 +32,14 @@ def getFormattedConnectionDetails(connectionString):
 
 class mainClass(MqClientBaseClass):
   connectionPool = None
+  skipConnectionCheck = None
   def __init__(self, configDict):
     super(mainClass, self).__init__(configDict=configDict)
+
+    self.skipConnectionCheck = False
+    if "skipConnectionCheck" in configDict:
+      if configDict["skipConnectionCheck"] == True:
+        self.skipConnectionCheck = True
 
     requiredInDict = ["Username", "Password", "ConnectionString"]
     for x in requiredInDict:
@@ -46,7 +52,8 @@ class mainClass(MqClientBaseClass):
         "Username": configDict["Username"],
         "Password": configDict["Password"],
       },
-      recieveFunction=self.processMessageCALLEDFROMDERIVEDONLY
+      recieveFunction=self.processMessageCALLEDFROMDERIVEDONLY,
+      skipConnectionCheck=self.skipConnectionCheck
     )
 
   def _sendStringMessage(self, internalDestination, body):

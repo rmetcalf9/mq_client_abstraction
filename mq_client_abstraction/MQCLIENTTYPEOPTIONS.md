@@ -23,5 +23,6 @@ export APIAPP_OBJECTSTORECONFIG="{\"Type\":\"Memory\"}"
   "ConnectionString": "", # like stomp+ssl://aaa.mq.xxx.amazonaws.com:61614
   "Usernaame":
   "Password":
+  "skipConnectionCheck": defaults to false
 }
 ```

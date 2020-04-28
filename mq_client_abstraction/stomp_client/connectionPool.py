@@ -11,9 +11,14 @@ class ConnectionPoolClass():
 
   connections = None
 
-  def __init__(self, fullConnectionDetails, recieveFunction):
+  def __init__(self, fullConnectionDetails, recieveFunction, skipConnectionCheck):
     self.fullConnectionDetails = fullConnectionDetails
     self.recieveFunction = recieveFunction
+
+    if not skipConnectionCheck:
+      # Test connection on creation of pool
+      testConnection = ConnectionClass(self.fullConnectionDetails, recieveFunction=self.recieveFunction)
+      testConnection.close(wait=True)
 
     self.connections = []
 

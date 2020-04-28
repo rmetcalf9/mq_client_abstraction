@@ -1,4 +1,5 @@
 # These are essentially null wrapper functions as Memory is it's own mock
+import mq_client_abstraction
 
 def sendStringMessage(mqClient, testContext, destination, body):
   mqClient.sendStringMessage(destination=destination, body=body)
@@ -23,6 +24,8 @@ def subscribeDestinationToPythonQueue(mqClient, testContext, destination, queue)
 def startRecieveThread(mqClient, testContext, sleepTime):
   mqClient.startRecieveThread(sleepTime=sleepTime)
 
+def createMqClientInstance(testContext, configDict):
+  return mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
 
 def get():
   return {
@@ -31,5 +34,6 @@ def get():
     "close": close,
     "processLoop": processLoop,
     "subscribeDestinationToPythonQueue": subscribeDestinationToPythonQueue,
-    "startRecieveThread": startRecieveThread
+    "startRecieveThread": startRecieveThread,
+    "createMqClientInstance": createMqClientInstance
   }

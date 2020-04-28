@@ -1,7 +1,8 @@
 from unittest import mock
 import queue
+import mq_client_abstraction
 
-def _setupTextContext(testContext):
+def _setupTestContext(testContext):
   if not "mockConnectionObject" in testContext:
     testContext["mockConnectionObject"] = MockConnectionObjectClass()
   if "messagequeue" not in testContext:
@@ -41,7 +42,7 @@ class MockConnectionObjectClass():
 
 
 def sendStringMessage(mqClient, testContext, destination, body):
-  _setupTextContext(testContext=testContext)
+  _setupTestContext(testContext=testContext)
   testContext["messagequeue"].put((destination, body))
 
   with mock.patch('stomp.Connection', return_value=testContext["mockConnectionObject"]) as stompConnection_function:
@@ -49,7 +50,7 @@ def sendStringMessage(mqClient, testContext, destination, body):
 
 
 def subscribeToDestination(mqClient, testContext, destination, msgRecieveFunction):
-  _setupTextContext(testContext=testContext)
+  _setupTestContext(testContext=testContext)
   testContext["subbedDests"].append(destination)
 
   with mock.patch('stomp.Connection', return_value=testContext["mockConnectionObject"]) as stompConnection_function:
@@ -81,6 +82,13 @@ def startRecieveThread(mqClient, testContext, sleepTime):
 
   mqClient.startRecieveThread(sleepTime=sleepTime)
 
+def createMqClientInstance(testContext, configDict):
+  _setupTestContext(testContext=testContext)
+  mq_client = None
+  with mock.patch('stomp.Connection', return_value=testContext["mockConnectionObject"]) as stompConnection_function:
+    mq_client = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+  return mq_client
+
 
 def get():
   return {
@@ -89,5 +97,6 @@ def get():
     "close": close,
     "processLoop": processLoop,
     "subscribeDestinationToPythonQueue": subscribeDestinationToPythonQueue,
-    "startRecieveThread": startRecieveThread
+    "startRecieveThread": startRecieveThread,
+    "createMqClientInstance": createMqClientInstance
   }

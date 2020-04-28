@@ -38,7 +38,7 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
     configDict = {
       "Type": "Stomp",
       "Username": "TestUsername",
-      "Password": "TestPAssword"
+      "Password": "TestPassword"
     }
     with self.assertRaises(Exception) as context:
       mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
@@ -134,7 +134,8 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "Type": "Stomp",
       "Username": "TestUsername",
       "Password": "TestPassword",
-      "ConnectionString": "stomp+ssl://aa:1234"
+      "ConnectionString": "stomp+ssl://aa:1234",
+      "skipConnectionCheck": True
     }
     for x in validMappings:
       configDict2 = copy.deepcopy(configDict)
@@ -148,7 +149,8 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "Type": "Stomp",
       "Username": "TestUsername",
       "Password": "TestPassword",
-      "ConnectionString": "stomp+ssl://b-xx-xx-xx-xx-xx-1.mq.eu-west-2.amazonaws.com:61614"
+      "ConnectionString": "stomp+ssl://b-xx-xx-xx-xx-xx-1.mq.eu-west-2.amazonaws.com:61614",
+      "skipConnectionCheck": True
     }
     mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
 

@@ -28,7 +28,7 @@ class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
   def test_sendMessage(self):
     for clientTypeDict in clientTypesToTest:
       testContext = {}
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=clientTypeDict["config"])
+      mqClient = clientTypeDict["wrapperFunctions"]["createMqClientInstance"](testContext=testContext, configDict=clientTypeDict["config"])
       self.assertEqual(mqClient.getType(),clientTypeDict["config"]["Type"])
 
       testMessage="asf435tyhbred3wvbr"
@@ -62,7 +62,7 @@ class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
   def test_sendMessagesToThreeDistenations(self):
     for clientTypeDict in clientTypesToTest:
       testContext = {}
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=clientTypeDict["config"])
+      mqClient = clientTypeDict["wrapperFunctions"]["createMqClientInstance"](testContext=testContext, configDict=clientTypeDict["config"])
 
       testDestinations = {}
       testDestinations["/queue/dest001"] = {"testMEssage001", "testMEssage002", "testMEssage003"}
@@ -118,7 +118,7 @@ class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
   def test_sendMessageAndRecieveUsingQueue(self):
     for clientTypeDict in clientTypesToTest:
       testContext = {}
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=clientTypeDict["config"])
+      mqClient = clientTypeDict["wrapperFunctions"]["createMqClientInstance"](testContext=testContext, configDict=clientTypeDict["config"])
 
       testMessage="asf435tyhbred3wvbr"
       testDestination="/queue/aa"
@@ -142,7 +142,7 @@ class test_memoryclient(TestHelperSuperClass.testHelperSuperClass):
   def test_sendMessageAndRecieveUsingQueueInSeperateThread(self):
     for clientTypeDict in clientTypesToTest:
       testContext = {}
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=clientTypeDict["config"])
+      mqClient = clientTypeDict["wrapperFunctions"]["createMqClientInstance"](testContext=testContext, configDict=clientTypeDict["config"])
 
       testMessage="asf435tyhbred3wvbr"
       testDestination="/queue/aa"
