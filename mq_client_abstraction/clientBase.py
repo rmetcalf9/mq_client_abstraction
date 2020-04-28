@@ -58,8 +58,8 @@ class RecieveThread(threading.Thread):
     if self.running:
       if not self.isAlive():
         raise MqClientThreadHealthCheckExceptionClass("MQ Client thread is no longer alive")
-    if self.selfthrownException is not None:
-      raise self.selfthrownException
+    if self.thrownException is not None:
+      raise self.thrownException
 
 class MqClientBaseClass():
   destinationPrefix = None
