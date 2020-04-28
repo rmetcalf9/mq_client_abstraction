@@ -41,6 +41,17 @@ class mainClass(MqClientBaseClass):
       if configDict["skipConnectionCheck"] == True:
         self.skipConnectionCheck = True
 
+    reconnectMaxRetries = 6
+    if "reconnectMaxRetries" in configDict:
+      reconnectMaxRetries = configDict["reconnectMaxRetries"]
+    reconectInitialSecondsBetweenTries = 2
+    if "reconectInitialSecondsBetweenTries" in configDict:
+      reconectInitialSecondsBetweenTries = configDict["reconectInitialSecondsBetweenTries"]
+    reconnectFadeoffFactor = 4
+    if "reconnectFadeoffFactor" in configDict:
+      reconnectFadeoffFactor = configDict["reconnectFadeoffFactor"]
+
+
     requiredInDict = ["Username", "Password", "ConnectionString"]
     for x in requiredInDict:
       if x not in configDict:
@@ -53,7 +64,10 @@ class mainClass(MqClientBaseClass):
         "Password": configDict["Password"],
       },
       recieveFunction=self.processMessageCALLEDFROMDERIVEDONLY,
-      skipConnectionCheck=self.skipConnectionCheck
+      skipConnectionCheck=self.skipConnectionCheck,
+      reconnectMaxRetries=reconnectMaxRetries,
+      reconectInitialSecondsBetweenTries=reconectInitialSecondsBetweenTries,
+      reconnectFadeoffFactor=reconnectFadeoffFactor
     )
 
   def _sendStringMessage(self, internalDestination, body):

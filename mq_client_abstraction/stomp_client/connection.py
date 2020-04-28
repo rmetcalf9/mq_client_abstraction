@@ -11,15 +11,20 @@ class ConnectionClass():
   registeredSubscriptions = None
   connected = None
   thrownException = None
+  reconnectMaxRetries = None
+  reconectInitialSecondsBetweenTries = None
+  reconnectFadeoffFactor = None
 
-
-  def __init__(self, fullConnectionDetails, recieveFunction):
+  def __init__(self, fullConnectionDetails, recieveFunction, reconnectMaxRetries, reconectInitialSecondsBetweenTries, reconnectFadeoffFactor):
     self.closed = False
     self.fullConnectionDetails = fullConnectionDetails
     self.recieveFunction = recieveFunction
     self.registeredSubscriptions = []
     self.connected = False
     self.thrownException = None
+    self.reconnectMaxRetries = reconnectMaxRetries
+    self.reconectInitialSecondsBetweenTries = reconectInitialSecondsBetweenTries
+    self.reconnectFadeoffFactor = reconnectFadeoffFactor
 
     self.stompConnection = stomp.Connection(
       host_and_ports=[(self.fullConnectionDetails["FormattedConnectionDetails"]["Url"], self.fullConnectionDetails["FormattedConnectionDetails"]["Port"])])
@@ -46,6 +51,15 @@ class ConnectionClass():
     )
     self.connected = True
 
+  def retryWrapperAround_connectIfNeeded(self):
+    retriesRemaining = self.reconnectMaxRetries
+    secondsBetweenTries = self.reconectInitialSecondsBetweenTries
+    while not self.connected:
+      try:
+        self._connectIfNeeded()
+      except Exception as excpi:
+        raise excpi
+
   def _onError(self, headers, message):
     self.thrownException = MqClientThreadHealthCheckExceptionClass("STOMP onError called - " + message)
     raise Exception(message)
@@ -59,7 +73,7 @@ class ConnectionClass():
       #  otherwise we cna wait and only reconnect when sendStringMessage or registerSubscription is called
       if len(self.registeredSubscriptions) == 0:
         return
-      self._connectIfNeeded()
+      self.retryWrapperAround_connectIfNeeded()
       for internalDestination in self.registeredSubscriptions():
         self.stompConnection.subscribe(destination=internalDestination, id=1, ack='auto')
     except Exception as excepti:

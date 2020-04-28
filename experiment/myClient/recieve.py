@@ -37,9 +37,12 @@ def recieveUsingProcess():
   except KeyboardInterrupt:
       print('interrupted - so exiting!')
 
+  mqClient.close(wait=True)
+
 
 print("Started")
-recieveUsingThread()
+#recieveUsingThread()
+recieveUsingProcess()
 print("Finished")
 
 # python3 ./recieve.py
