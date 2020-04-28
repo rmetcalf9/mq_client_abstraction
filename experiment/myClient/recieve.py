@@ -13,11 +13,12 @@ def recieveUsingThread():
 
   try:
     while True:
+      print("loop")
       mqClient.threadHealthCheck()
       while not recieveQueue.empty():
         (message) = recieveQueue.get()
         print("Recieved ", message)
-      time.sleep(10)
+      time.sleep(1)
   except KeyboardInterrupt:
     print('interrupted - so exiting!')
 
@@ -36,6 +37,8 @@ def recieveUsingProcess():
   except KeyboardInterrupt:
       print('interrupted - so exiting!')
 
+print("Started")
 recieveUsingThread()
+print("Finished")
 
 # python3 ./recieve.py

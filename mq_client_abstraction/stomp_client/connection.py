@@ -1,6 +1,6 @@
 import stomp
 import ssl
-from ..clientBase import MqClientExceptionClass
+from ..clientBase import MqClientExceptionClass, MqClientThreadHealthCheckExceptionClass
 from .stompConnectionListener import StompConnectionListenerClass
 
 class ConnectionClass():
@@ -47,7 +47,8 @@ class ConnectionClass():
     self.connected = True
 
   def _onError(self, headers, message):
-    self.thrownException = Exception("STOMP onError called - " + message)
+    self.thrownException = MqClientThreadHealthCheckExceptionClass("STOMP onError called - " + message)
+    raise Exception(message)
 
   def _onDisconnected(self):
     try:
@@ -62,13 +63,15 @@ class ConnectionClass():
       for internalDestination in self.registeredSubscriptions():
         self.stompConnection.subscribe(destination=internalDestination, id=1, ack='auto')
     except Exception as excepti:
-      self.thrownException = excepti
+      self.thrownException = MqClientThreadHealthCheckExceptionClass("Exception thrown in stomp")
+      raise excepti
 
   def _onMessage(self, headers, message):
     try:
       self.recieveFunction(internalDestination=headers["destination"], body=message)
     except Exception as excepti:
-      self.thrownException = excepti
+      self.thrownException = MqClientThreadHealthCheckExceptionClass("Exception thrown in stomp")
+      raise excepti
 
   def sendStringMessage(self, internalDestination, body):
     if self.closed:
