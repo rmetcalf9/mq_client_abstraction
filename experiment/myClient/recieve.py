@@ -13,9 +13,12 @@ def recieveUsingThread():
   mqClient.subscribeDestinationToPythonQueue(destination=destinationToTest, queue=recieveQueue)
   mqClient.startRecieveThread(sleepTime=0.1)
 
+  it = 1
+
   try:
     while True:
-      print("loop")
+      print("loop recieveUsingThread", it)
+      it = it + 1
       mqClient.threadHealthCheck()
       while not recieveQueue.empty():
         (message) = recieveQueue.get()
@@ -36,7 +39,7 @@ def recieveUsingApplicationProvidedProcessLoop():
   it = 1
   try:
       while True:
-        print("process loop", it)
+        print("process loop (recieveUsingApplicationProvidedProcessLoop) ", it)
         mqClient.processLoopHealthCheck()
         it = it + 1
         time.sleep(1)
@@ -52,12 +55,21 @@ def recieveUsingProcessLoop():
 
   mqClient.subscribeToDestination(destination=destinationToTest, msgRecieveFunction=msgRecieveFunction)
 
+  class Counter():
+    num = None
+    def __init__(self):
+      self.num = 0
+    def plusplus(self):
+      self.num = self.num + 1
+      return self.num
+  counter = Counter()
+
   def functionToRunOnEachIteration():
-    print("Loop iteration function")
+    print("Loop iteration function (recieveUsingProcessLoop)", counter.plusplus())
   mqClient.processLoop(
     exitFunction=None,
     timeoutInSeconds=None,
-    sleepDurationInSeconds=0.1,
+    sleepDurationInSeconds=1,
     functionToRunOnEachIteration=functionToRunOnEachIteration
   )
 

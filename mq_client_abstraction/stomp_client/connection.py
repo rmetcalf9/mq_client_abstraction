@@ -2,6 +2,7 @@ import stomp
 import ssl
 from ..clientBase import MqClientExceptionClass, MqClientThreadHealthCheckExceptionClass
 from .stompConnectionListener import StompConnectionListenerClass
+import time
 
 class ConnectionClass():
   fullConnectionDetails = None # includes username and password
@@ -55,10 +56,20 @@ class ConnectionClass():
     retriesRemaining = self.reconnectMaxRetries
     secondsBetweenTries = self.reconectInitialSecondsBetweenTries
     while not self.connected:
+      exeptionRaised = None
       try:
         self._connectIfNeeded()
+      except stomp.exception.ConnectFailedException as excpi:
+        exeptionRaised = excpi
       except Exception as excpi:
         raise excpi
+      if not self.connected:
+        if retriesRemaining==0:
+          print("Connection retry limit reached")
+          raise exeptionRaised
+        retriesRemaining = retriesRemaining - 1
+        time.sleep(secondsBetweenTries)
+        secondsBetweenTries = secondsBetweenTries * self.reconnectFadeoffFactor
 
   def _onError(self, headers, message):
     self.thrownException = MqClientThreadHealthCheckExceptionClass("STOMP onError called - " + message)
