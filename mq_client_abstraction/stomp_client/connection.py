@@ -50,6 +50,7 @@ class ConnectionClass():
       self.fullConnectionDetails["Password"],
       wait=True
     )
+    print("Connection successful")
     self.connected = True
 
   def retryWrapperAround_connectIfNeeded(self):
@@ -68,7 +69,7 @@ class ConnectionClass():
           print("Connection retry limit reached")
           raise exeptionRaised
         retriesRemaining = retriesRemaining - 1
-        print("Waiting ", secondsBetweenTries, " seconds before next connection attempt")
+        print("Waiting", secondsBetweenTries, "seconds before next connection attempt (attempts left", retriesRemaining, ")")
         time.sleep(secondsBetweenTries)
         secondsBetweenTries = secondsBetweenTries * self.reconnectFadeoffFactor
 
