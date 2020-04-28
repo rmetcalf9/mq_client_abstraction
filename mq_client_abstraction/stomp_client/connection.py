@@ -69,7 +69,7 @@ class ConnectionClass():
           print("Connection retry limit reached")
           raise exeptionRaised
         retriesRemaining = retriesRemaining - 1
-        print("Waiting", secondsBetweenTries, "seconds before next connection attempt (attempts left", retriesRemaining, ")")
+        print("Waiting", secondsBetweenTries, "seconds before next connection attempt (attempts left", retriesRemaining + 1, ")")
         time.sleep(secondsBetweenTries)
         secondsBetweenTries = secondsBetweenTries * self.reconnectFadeoffFactor
 

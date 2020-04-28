@@ -25,7 +25,7 @@ def startRecieveThread(mqClient, testContext, sleepTime):
   mqClient.startRecieveThread(sleepTime=sleepTime)
 
 def createMqClientInstance(testContext, configDict):
-  return mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+  return mq_client_abstraction.createMQClientInstance(configDict=configDict)
 
 def get():
   return {

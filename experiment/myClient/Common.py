@@ -23,4 +23,4 @@ def getMqClient():
     "Password": getFromEnvironment("RJMACTIVEMQ_PASS"),
     "ConnectionString": getFromEnvironment("RJMACTIVEMQ_CONNSTR")
   }
-  return mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+  return mq_client_abstraction.createMQClientInstance(configDict=configDict)

@@ -11,7 +11,7 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "DestinationPrefix": "fr%$£"
     }
     with self.assertRaises(Exception) as context:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+      mqClient = mq_client_abstraction.createMQClientInstance(configDict=configDict)
     self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
     self.assertEqual(str(context.exception),"Invalid DestinationPrefix")
 
@@ -20,7 +20,7 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "Type": "Stomp"
     }
     with self.assertRaises(Exception) as context:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+      mqClient = mq_client_abstraction.createMQClientInstance(configDict=configDict)
     self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
     self.assertEqual(str(context.exception),"Invalid mq client config - Missing Username")
 
@@ -30,7 +30,7 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "Username": "TestUsername"
     }
     with self.assertRaises(Exception) as context:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+      mqClient = mq_client_abstraction.createMQClientInstance(configDict=configDict)
     self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
     self.assertEqual(str(context.exception),"Invalid mq client config - Missing Password")
 
@@ -41,7 +41,7 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "Password": "TestPassword"
     }
     with self.assertRaises(Exception) as context:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+      mqClient = mq_client_abstraction.createMQClientInstance(configDict=configDict)
     self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
     self.assertEqual(str(context.exception),"Invalid mq client config - Missing ConnectionString")
 
@@ -53,7 +53,7 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "ConnectionString": "InvalidConnectionString"
     }
     with self.assertRaises(Exception) as context:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+      mqClient = mq_client_abstraction.createMQClientInstance(configDict=configDict)
     self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
     self.assertEqual(str(context.exception),"Invalid mq client config - Invalid ConnectionString")
 
@@ -65,7 +65,7 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "ConnectionString": "badstomp+ssl://aaa.mq.xxx.amazonaws.com:61614"
     }
     with self.assertRaises(Exception) as context:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+      mqClient = mq_client_abstraction.createMQClientInstance(configDict=configDict)
     self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
     self.assertEqual(str(context.exception),"Invalid mq client config - Invalid ConnectionString (Bad Protocol)")
 
@@ -77,7 +77,7 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "ConnectionString": "stomp+ssl://aaa.mq.xxx.amazonaws.com"
     }
     with self.assertRaises(Exception) as context:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+      mqClient = mq_client_abstraction.createMQClientInstance(configDict=configDict)
     self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
     self.assertEqual(str(context.exception),"Invalid mq client config - Invalid ConnectionString (Missing Port)")
 
@@ -89,7 +89,7 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "ConnectionString": "stomp+ssl://aaa.mq.xxx.amazonaws.com:abc"
     }
     with self.assertRaises(Exception) as context:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+      mqClient = mq_client_abstraction.createMQClientInstance(configDict=configDict)
     self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
     self.assertEqual(str(context.exception),"Invalid mq client config - Invalid ConnectionString (Port must be a number)")
 
@@ -101,7 +101,7 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "ConnectionString": "stomp+ssl://aaa.mq.xxx.amazonaws.com:-123"
     }
     with self.assertRaises(Exception) as context:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+      mqClient = mq_client_abstraction.createMQClientInstance(configDict=configDict)
     self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
     self.assertEqual(str(context.exception),"Invalid mq client config - Invalid ConnectionString (Port not in range 0-65535)")
 
@@ -113,7 +113,7 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "ConnectionString": "stomp+ssl://aaa.mq.xxx.amazonaws.com:65536"
     }
     with self.assertRaises(Exception) as context:
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+      mqClient = mq_client_abstraction.createMQClientInstance(configDict=configDict)
     self.checkGotRightExceptionType(context,mq_client_abstraction.MqClientExceptionClass)
     self.assertEqual(str(context.exception),"Invalid mq client config - Invalid ConnectionString (Port not in range 0-65535)")
 
@@ -140,7 +140,7 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
     for x in validMappings:
       configDict2 = copy.deepcopy(configDict)
       configDict2["DestinationPrefix"] = x["prefix"]
-      mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict2)
+      mqClient = mq_client_abstraction.createMQClientInstance(configDict=configDict2)
       self.assertEqual(mqClient._mapToInternalDestination(x["destination"]), x["internaldestination"], msg="Map to destination failed")
       self.assertEqual(mqClient._mapFromInternalDestination(x["internaldestination"]), x["destination"], msg="Map from destination failed")
 
@@ -152,6 +152,6 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "ConnectionString": "stomp+ssl://b-xx-xx-xx-xx-xx-1.mq.eu-west-2.amazonaws.com:61614",
       "skipConnectionCheck": True
     }
-    mqClient = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+    mqClient = mq_client_abstraction.createMQClientInstance(configDict=configDict)
 
 

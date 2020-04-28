@@ -86,7 +86,7 @@ def createMqClientInstance(testContext, configDict):
   _setupTestContext(testContext=testContext)
   mq_client = None
   with mock.patch('stomp.Connection', return_value=testContext["mockConnectionObject"]) as stompConnection_function:
-    mq_client = mq_client_abstraction.createObjectStoreInstance(configDict=configDict)
+    mq_client = mq_client_abstraction.createMQClientInstance(configDict=configDict)
   return mq_client
 
 

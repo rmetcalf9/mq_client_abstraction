@@ -3,7 +3,7 @@ from .clientBase import MqClientExceptionClass
 from .memory_client import mainClass as memoryMainClass
 from .stomp_client import mainClass as stompMainClass
 
-def createObjectStoreInstance(configDict):
+def createMQClientInstance(configDict):
   if configDict is None:
     configDict = {}
     configDict["Type"] = "Memory"
