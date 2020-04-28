@@ -31,7 +31,6 @@ def recieveUsingApplicationProvidedProcessLoop():
   print("recieveUsingApplicationProvidedProcessLoop")
   def msgRecieveFunction(destination, body):
     print("Recieved ", body, " sent to " , destination)
-
   mqClient.subscribeToDestination(destination=destinationToTest, msgRecieveFunction=msgRecieveFunction)
 
   it = 1
@@ -55,7 +54,6 @@ def recieveUsingProcessLoop():
 
   def functionToRunOnEachIteration():
     print("Loop iteration function")
-
   mqClient.processLoop(
     exitFunction=None,
     timeoutInSeconds=None,
