@@ -40,7 +40,7 @@ def recieveUsingApplicationProvidedProcessLoop():
   try:
       while True:
         print("process loop (recieveUsingApplicationProvidedProcessLoop) ", it)
-        mqClient.processLoopHealthCheck()
+        mqClient.processLoopIteration()
         it = it + 1
         time.sleep(1)
   except KeyboardInterrupt:
