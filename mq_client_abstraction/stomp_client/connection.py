@@ -11,7 +11,7 @@ class registeredSubscriptionClass():
     self.internalDestination = internalDestination
     self.prefetchSize = prefetchSize
   def subscribeToStompConnection(self, stompConnection):
-    stompConnection.subscribe(destination=self.internalDestination, id=1, ack='auto', headers={'activemq.prefetchSize': self.prefetchSize})
+    stompConnection.subscribe(destination=self.internalDestination, id=1, ack='client-individual', headers={'activemq.prefetchSize': self.prefetchSize})
 
 
 class ConnectionClass():
@@ -115,6 +115,9 @@ class ConnectionClass():
 
     exceptionRaisedInRecieveFunction = None
     try:
+      # Ack the message BEFORE processing
+      #  reduces the chance of connection being reset while message is being processed
+      self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
       self.recieveFunction(internalDestination=headers["destination"], body=message)
     except Exception as excepti:
       self.thrownException = MqClientThreadHealthCheckExceptionClass("Exception thrown in stomp recieve function")
