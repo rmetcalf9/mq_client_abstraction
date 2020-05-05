@@ -16,7 +16,9 @@ def _transmitessagesInTextContext(testContext):
     (destination, body) =testContext["messagequeue"].get()
     if destination in testContext["subbedDests"]:
       headers = {
-        "destination": destination
+        "destination": destination,
+        "message-id": "123",
+        "subscription": 1
       }
       testContext["mockConnectionObject"].getStompListener().on_message(headers=headers, message=body)
 
@@ -28,11 +30,15 @@ class MockConnectionObjectClass():
     return
   def send(self, body, destination):
     return
-  def subscribe(self, destination, id, ack):
+  def subscribe(self, destination, id, ack, headers):
     return
   def set_listener(self, unknownParam, stompListener):
     self.stompListener = stompListener
   def disconnect(self):
+    return
+  def ack (self, id, subscription):
+    return
+  def nack (self, id, subscription):
     return
 
   def getStompListener(self):

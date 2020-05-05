@@ -73,9 +73,11 @@ class mainClass(MqClientBaseClass):
   def _sendStringMessage(self, internalDestination, body):
     self.connectionPool.getConnection().sendStringMessage(internalDestination=internalDestination, body=body)
 
-  def _registerSubscription(self, internalDestination):
+  def _registerSubscription(self, internalDestination, prefetchSize, sendNackOnException):
     self.connectionPool.getConnection().registerSubscription(
-      internalDestination=internalDestination
+      internalDestination=internalDestination,
+      prefetchSize=prefetchSize,
+      sendNackOnException=sendNackOnException
     )
 
   def _close(self, wait):

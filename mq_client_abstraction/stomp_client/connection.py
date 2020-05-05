@@ -4,6 +4,18 @@ from ..clientBase import MqClientExceptionClass, MqClientThreadHealthCheckExcept
 from .stompConnectionListener import StompConnectionListenerClass
 import time
 
+class registeredSubscriptionClass():
+  internalDestination = None
+  prefetchSize = None
+  sendNackOnException = None
+  def __init__(self, internalDestination, prefetchSize, sendNackOnException):
+    self.internalDestination = internalDestination
+    self.prefetchSize = prefetchSize
+    self.sendNackOnException = sendNackOnException
+  def subscribeToStompConnection(self, stompConnection):
+    stompConnection.subscribe(destination=self.internalDestination, id=1, ack='client-individual', headers={'activemq.prefetchSize': self.prefetchSize})
+
+
 class ConnectionClass():
   fullConnectionDetails = None # includes username and password
   stompConnection = None
@@ -20,7 +32,7 @@ class ConnectionClass():
     self.closed = False
     self.fullConnectionDetails = fullConnectionDetails
     self.recieveFunction = recieveFunction
-    self.registeredSubscriptions = []
+    self.registeredSubscriptions = {}
     self.connected = False
     self.thrownException = None
     self.reconnectMaxRetries = reconnectMaxRetries
@@ -28,7 +40,8 @@ class ConnectionClass():
     self.reconnectFadeoffFactor = reconnectFadeoffFactor
 
     self.stompConnection = stomp.Connection(
-      host_and_ports=[(self.fullConnectionDetails["FormattedConnectionDetails"]["Url"], self.fullConnectionDetails["FormattedConnectionDetails"]["Port"])])
+      host_and_ports=[(self.fullConnectionDetails["FormattedConnectionDetails"]["Url"], self.fullConnectionDetails["FormattedConnectionDetails"]["Port"])]
+    )
 
     self._connectIfNeeded()
 
@@ -87,18 +100,37 @@ class ConnectionClass():
       if len(self.registeredSubscriptions) == 0:
         return
       self.retryWrapperAround_connectIfNeeded()
+
+      #now we have connected re-register all subscriptions on new connection
       for internalDestination in self.registeredSubscriptions:
-        self.stompConnection.subscribe(destination=internalDestination, id=1, ack='auto')
+        self.registeredSubscriptions[internalDestination].subscribeToStompConnection(self.stompConnection)
     except Exception as excepti:
       self.thrownException = MqClientThreadHealthCheckExceptionClass("Exception thrown in stomp")
       raise excepti
 
   def _onMessage(self, headers, message):
+    registeredSubscription = None
+    if headers["destination"] in self.registeredSubscriptions:
+      registeredSubscription =  self.registeredSubscriptions[headers["destination"] ]
+
+    exceptionRaisedInRecieveFunction = None
     try:
       self.recieveFunction(internalDestination=headers["destination"], body=message)
     except Exception as excepti:
-      self.thrownException = MqClientThreadHealthCheckExceptionClass("Exception thrown in stomp")
-      raise excepti
+      exceptionRaisedInRecieveFunction = excepti
+
+    if exceptionRaisedInRecieveFunction is None:
+      self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
+    else:
+      if registeredSubscription is not None:
+        if registeredSubscription.sendNackOnException:
+          self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
+        else:
+          self.stompConnection.nack(id=headers["message-id"], subscription=headers["subscription"])
+      else:
+        self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
+      self.thrownException = MqClientThreadHealthCheckExceptionClass("Exception thrown in stomp recieve function")
+      raise exceptionRaisedInRecieveFunction
 
   def sendStringMessage(self, internalDestination, body):
     if self.closed:
@@ -106,7 +138,7 @@ class ConnectionClass():
     self._connectIfNeeded()
     self.stompConnection.send(body=body, destination=internalDestination)
 
-  def registerSubscription(self, internalDestination):
+  def registerSubscription(self, internalDestination, prefetchSize, sendNackOnException):
     self._connectIfNeeded()
     if len(self.registeredSubscriptions) == 0:
       self.stompConnection.set_listener(
@@ -117,8 +149,9 @@ class ConnectionClass():
           errorFunction = self._onError
         )
       )
-    self.registeredSubscriptions.append(internalDestination)
-    self.stompConnection.subscribe(destination=internalDestination, id=1, ack='auto')
+    registeredSubscription = registeredSubscriptionClass(internalDestination, prefetchSize, sendNackOnException)
+    self.registeredSubscriptions[internalDestination] = registeredSubscription
+    registeredSubscription.subscribeToStompConnection(self.stompConnection)
 
 
   def close(self, wait):
