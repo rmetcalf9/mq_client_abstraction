@@ -11,8 +11,8 @@ class StompConnectionListenerClass(stomp.ConnectionListener):
     self.errorFunction = errorFunction
 
   def on_error(self, headers, message):
-    errorFunction(headers=headers, message=message)
+    self.errorFunction(headers=headers, message=message)
   def on_message(self, headers, message):
     self.messageFunction(headers=headers, message=message)
   def on_disconnected(self):
-      self.disconnectedFunction()
+    self.disconnectedFunction()
