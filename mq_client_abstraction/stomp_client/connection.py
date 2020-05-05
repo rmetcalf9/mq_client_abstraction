@@ -29,7 +29,7 @@ class ConnectionClass():
 
   _connectIfNeededLock = None
 
-  def __init__(self, fullConnectionDetails, recieveFunction, reconnectMaxRetries, reconectInitialSecondsBetweenTries, reconnectFadeoffFactor):
+  def __init__(self, fullConnectionDetails, recieveFunction, reconnectMaxRetries, reconectInitialSecondsBetweenTries, reconnectFadeoffFactor, description="Initial"):
     self._connectIfNeededLock = threading.Lock()
     self.closed = False
     self.fullConnectionDetails = fullConnectionDetails
@@ -45,7 +45,7 @@ class ConnectionClass():
       host_and_ports=[(self.fullConnectionDetails["FormattedConnectionDetails"]["Url"], self.fullConnectionDetails["FormattedConnectionDetails"]["Port"])]
     )
 
-    self._connectIfNeeded(description="Initial")
+    self._connectIfNeeded(description=description)
 
   def _connectIfNeeded(self, description):
     self._connectIfNeededLock.acquire(blocking=True, timeout=-1)
@@ -121,12 +121,16 @@ class ConnectionClass():
     else:
       raise Exception("_onMessage called with destination not registered " + headers["destination"])
 
-    exceptionRaisedInRecieveFunction = None
+    print("_onMessage", headers, message)
+
     try:
       # Ack the message BEFORE processing
       #  reduces the chance of connection being reset while message is being processed
+      print("_onMessage SEND ACK", headers["message-id"], headers["subscription"])
       self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
+      print("_onMEssage Start PRocess")
       self.recieveFunction(internalDestination=headers["destination"], body=message)
+      print("_onMEssage End PRocess")
     except Exception as excepti:
       self.thrownException = MqClientThreadHealthCheckExceptionClass("Exception thrown in stomp recieve function")
       raise excepti

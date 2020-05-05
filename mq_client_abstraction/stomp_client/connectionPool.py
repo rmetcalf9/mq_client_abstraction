@@ -32,7 +32,8 @@ class ConnectionPoolClass():
         recieveFunction=self.recieveFunction,
         reconnectMaxRetries=self.reconnectMaxRetries,
         reconectInitialSecondsBetweenTries=self.reconectInitialSecondsBetweenTries,
-        reconnectFadeoffFactor=self.reconnectFadeoffFactor
+        reconnectFadeoffFactor=self.reconnectFadeoffFactor,
+        description="test connection"
       )
       testConnection.close(wait=True)
 
