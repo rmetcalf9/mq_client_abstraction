@@ -51,9 +51,18 @@ def recieveUsingApplicationProvidedProcessLoop():
 def recieveUsingProcessLoop():
   print("recieveUsingProcessLoop")
   def msgRecieveFunction(destination, body):
-    print("Recieved ", body, " sent to " , destination)
+    print("Recieved " + destination + " processing " + body, end="")
+    sys.stdout.flush()
+    for a in range(0,6):
+      print(".", end="")
+      sys.stdout.flush()
+      time.sleep(0.3)
+    print(".")
+    sys.stdout.flush()
+    sys.stdout.flush()
 
   mqClient.subscribeToDestination(destination=destinationToTest, msgRecieveFunction=msgRecieveFunction)
+  mqClient.subscribeToDestination(destination=destinationToTest + "2", msgRecieveFunction=msgRecieveFunction)
 
   class Counter():
     num = None

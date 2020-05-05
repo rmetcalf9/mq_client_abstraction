@@ -144,6 +144,7 @@ class ConnectionClass():
   def registerSubscription(self, internalDestination, prefetchSize):
     self._connectIfNeeded(description="registerSubscription")
     if len(self.registeredSubscriptions) == 0:
+      print("registerSubscription - registeringNEW subscription")
       self.stompConnection.set_listener(
         '',
         StompConnectionListenerClass(
