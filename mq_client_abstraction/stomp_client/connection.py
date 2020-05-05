@@ -61,7 +61,7 @@ class ConnectionClass():
       self.fullConnectionDetails["Password"],
       wait=True
     )
-    print("Connection successful")
+    print("STOMP Connection successful")
     self.connected = True
 
   def retryWrapperAround_connectIfNeeded(self):
