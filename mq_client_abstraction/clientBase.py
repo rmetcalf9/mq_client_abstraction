@@ -95,22 +95,19 @@ class MqClientBaseClass():
     self.validateDestination(destination=internalDestination)
     self._sendStringMessage(internalDestination=internalDestination, body=body)
 
-  #if sendNackOnException is True, failed messages sent back to queue
-  # if it is False, failed messages are acked. in both case an exception is raised
-  # clients can choose to crash
-  def subscribeToDestination(self, destination, msgRecieveFunction, prefetchSize=1, sendNackOnException=False):
+  def subscribeToDestination(self, destination, msgRecieveFunction, prefetchSize=1):
     internalDestination = self._mapToInternalDestination(destination)
     self.validateDestination(destination=internalDestination)
     if internalDestination in self.subscriptions:
       raise MqClientExceptionClass("This mq client Only supports one subscription per destination")
     self.subscriptions[internalDestination] = msgRecieveFunction
-    self._registerSubscription(internalDestination=internalDestination, prefetchSize=prefetchSize, sendNackOnException=sendNackOnException)
+    self._registerSubscription(internalDestination=internalDestination, prefetchSize=prefetchSize)
 
   def subscribeDestinationToPythonQueue(self, destination, queue):
     def msgRecieveFunction(destination, body):
       queue.put(body)
     # when going to a queue client is responsible for processing that queue
-    self.subscribeToDestination(destination, msgRecieveFunction, prefetchSize=50, sendNackOnException=True)
+    self.subscribeToDestination(destination, msgRecieveFunction, prefetchSize=50)
 
   # The process loop is for recievers that need to keep a loop running. It is not required for some types of
   #  client (Stomp) but is requried for others (Memory)
@@ -188,7 +185,7 @@ class MqClientBaseClass():
   def _sendStringMessage(self, internalDestination, body):
     raise Exception('_sendStringMessage Not Overridden')
 
-  def _registerSubscription(self, internalDestination, prefetchSize, sendNackOnException):
+  def _registerSubscription(self, internalDestination, prefetchSize):
     pass #overriden by inherited classes incase they have logic
 
   def _processLoopIteration(self):

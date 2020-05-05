@@ -7,13 +7,11 @@ import time
 class registeredSubscriptionClass():
   internalDestination = None
   prefetchSize = None
-  sendNackOnException = None
-  def __init__(self, internalDestination, prefetchSize, sendNackOnException):
+  def __init__(self, internalDestination, prefetchSize):
     self.internalDestination = internalDestination
     self.prefetchSize = prefetchSize
-    self.sendNackOnException = sendNackOnException
   def subscribeToStompConnection(self, stompConnection):
-    stompConnection.subscribe(destination=self.internalDestination, id=1, ack='client-individual', headers={'activemq.prefetchSize': self.prefetchSize})
+    stompConnection.subscribe(destination=self.internalDestination, id=1, ack='auto', headers={'activemq.prefetchSize': self.prefetchSize})
 
 
 class ConnectionClass():
@@ -113,35 +111,14 @@ class ConnectionClass():
     if headers["destination"] in self.registeredSubscriptions:
       registeredSubscription =  self.registeredSubscriptions[headers["destination"] ]
     else:
-      print("recieving message for non-destination", headers["destination"])
-
-    print("***********")
-    print("_onMessage", headers)
-    print("_onMessage", message)
-
+      raise Exception("_onMessage called with destination not registered " + headers["destination"])
 
     exceptionRaisedInRecieveFunction = None
     try:
       self.recieveFunction(internalDestination=headers["destination"], body=message)
     except Exception as excepti:
-      exceptionRaisedInRecieveFunction = excepti
-
-    sendAck = True #false send nack otherwise send ack
-    if exceptionRaisedInRecieveFunction is not None:
-      if registeredSubscription is not None:
-        if registeredSubscription.sendNackOnException:
-          sendAck = False
-
-    if sendAck:
-      print("ACK")
-      self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
-    else:
-      print("NACK")
-      self.stompConnection.nack(id=headers["message-id"], subscription=headers["subscription"])
-
-    if exceptionRaisedInRecieveFunction is not None:
       self.thrownException = MqClientThreadHealthCheckExceptionClass("Exception thrown in stomp recieve function")
-      raise exceptionRaisedInRecieveFunction
+      raise excepti
 
   def sendStringMessage(self, internalDestination, body):
     if self.closed:
@@ -149,7 +126,7 @@ class ConnectionClass():
     self._connectIfNeeded()
     self.stompConnection.send(body=body, destination=internalDestination)
 
-  def registerSubscription(self, internalDestination, prefetchSize, sendNackOnException):
+  def registerSubscription(self, internalDestination, prefetchSize):
     self._connectIfNeeded()
     if len(self.registeredSubscriptions) == 0:
       self.stompConnection.set_listener(
@@ -160,7 +137,7 @@ class ConnectionClass():
           errorFunction = self._onError
         )
       )
-    registeredSubscription = registeredSubscriptionClass(internalDestination, prefetchSize, sendNackOnException)
+    registeredSubscription = registeredSubscriptionClass(internalDestination, prefetchSize)
     self.registeredSubscriptions[internalDestination] = registeredSubscription
     registeredSubscription.subscribeToStompConnection(self.stompConnection)
 
