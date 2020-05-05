@@ -126,11 +126,11 @@ class ConnectionClass():
     try:
       # Ack the message BEFORE processing
       #  reduces the chance of connection being reset while message is being processed
-      print("_onMessage SEND ACK", headers["message-id"], headers["subscription"])
-      self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
-      print("_onMEssage Start PRocess")
+      print("_onMessage SEND ACK COMMENTED", headers["message-id"], headers["subscription"])
+      ###self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
+      print("_onMessage Start Process")
       self.recieveFunction(internalDestination=headers["destination"], body=message)
-      print("_onMEssage End PRocess")
+      print("_onMessage End Process")
     except Exception as excepti:
       self.thrownException = MqClientThreadHealthCheckExceptionClass("Exception thrown in stomp recieve function")
       raise excepti
