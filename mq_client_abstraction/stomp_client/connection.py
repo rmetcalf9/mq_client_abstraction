@@ -4,15 +4,18 @@ from ..clientBase import MqClientExceptionClass, MqClientThreadHealthCheckExcept
 from .stompConnectionListener import StompConnectionListenerClass
 import time
 import threading
+import uuid
 
 class registeredSubscriptionClass():
   internalDestination = None
   prefetchSize = None
+  id = None
   def __init__(self, internalDestination, prefetchSize):
     self.internalDestination = internalDestination
     self.prefetchSize = prefetchSize
+    self.id = str(uuid.uuid4())
   def subscribeToStompConnection(self, stompConnection):
-    stompConnection.subscribe(destination=self.internalDestination, id=1, ack='client-individual', headers={'activemq.prefetchSize': self.prefetchSize})
+    stompConnection.subscribe(destination=self.internalDestination, id=self.id, ack='client-individual', headers={'activemq.prefetchSize': self.prefetchSize})
 
 
 class ConnectionClass():
@@ -144,7 +147,7 @@ class ConnectionClass():
   def registerSubscription(self, internalDestination, prefetchSize):
     self._connectIfNeeded(description="registerSubscription")
     if len(self.registeredSubscriptions) == 0:
-      print("registerSubscription - registeringNEW subscription")
+      ##print("registerSubscription - registeringNEW subscription")
       self.stompConnection.set_listener(
         '',
         StompConnectionListenerClass(
