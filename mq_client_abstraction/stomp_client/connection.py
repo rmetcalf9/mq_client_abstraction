@@ -112,6 +112,13 @@ class ConnectionClass():
     registeredSubscription = None
     if headers["destination"] in self.registeredSubscriptions:
       registeredSubscription =  self.registeredSubscriptions[headers["destination"] ]
+    else:
+      print("recieving message for non-destination", headers["destination"])
+
+    print("***********")
+    print("_onMessage", headers)
+    print("_onMessage", message)
+
 
     exceptionRaisedInRecieveFunction = None
     try:
@@ -126,8 +133,10 @@ class ConnectionClass():
           sendAck = False
 
     if sendAck:
+      print("ACK")
       self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
     else:
+      print("NACK")
       self.stompConnection.nack(id=headers["message-id"], subscription=headers["subscription"])
 
     if exceptionRaisedInRecieveFunction is not None:
