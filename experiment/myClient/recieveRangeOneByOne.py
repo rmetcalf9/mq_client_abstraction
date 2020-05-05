@@ -13,12 +13,12 @@ mqClient = Common.getMqClient()
 def processMessageFromQueue(destination, body):
   print("Queue " + destination + " processing " + body, end="")
   sys.stdout.flush()
-  # for a in range(0,6):
-  #   print(".", end="")
-  #   sys.stdout.flush()
-  #   time.sleep(0.3)
-  # print(".")
-  # sys.stdout.flush()
+  for a in range(0,6):
+    print(".", end="")
+    sys.stdout.flush()
+    time.sleep(0.3)
+  print(".")
+  sys.stdout.flush()
 
 mqClient.subscribeToDestination(destination="/queue/test01", msgRecieveFunction=processMessageFromQueue)
 mqClient.subscribeToDestination(destination="/queue/test02", msgRecieveFunction=processMessageFromQueue)
