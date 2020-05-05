@@ -9,10 +9,21 @@ destination = "/queue/testQueueWithCrash"
 conn = stomp.Connection(host_and_ports=[(stompurl, stompport)])
 conn.connect(stompuser,stomppass,wait=True)
 
+i = 1
+
 for x in range(0,5):
-  conn.send(body="OK-BEFORE-CRASH", destination=destination)
+  msg = "OK-BEFORE-CRASH" + str(i)
+  conn.send(body=msg, destination=destination)
+  print("Sending ", msg)
+  i = i + 1
 
-conn.send(body="CRASH", destination=destination)
+msg = "CRASH" + str(i)
+conn.send(body=msg, destination=destination)
+print("Sending ", msg)
+i = i + 1
 
-for x in range(0,50):
-  conn.send(body="OK-AFTER-CRASH", destination=destination)
+for x in range(0,20):
+  msg = "OK-AFTER-CRASH" + str(i)
+  conn.send(body=msg, destination=destination)
+  i = i + 1
+  print("Sending ", msg)

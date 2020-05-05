@@ -19,17 +19,17 @@ class StompConnectionListenerClass(stomp.ConnectionListener):
   def on_error(self, headers, message):
     print('XX received an error "%s"' % message)
   def on_message(self, headers, message):
-    try:
-      self.processMessage(headers, message)
-    finally:
-      self.conn.ack(id=headers["message-id"], subscription=headers["subscription"])
+    self.conn.ack(id=headers["message-id"], subscription=headers["subscription"])
+    self.processMessage(headers, message)
+  def on_disconnected(self):
+    print("ON DISCONNECT")
 
 def messageProcessingFunction(headers, message):
   print('Main recieved a message "%s"' % message)
   if (message=="CRASH"):
     print("Message told processor to crash")
     raise Exception("Reached message which crashes reciever")
-  time.sleep(1) # simulate processing message taking time
+  time.sleep(5) # simulate processing message taking time
 
 stompConnectionListener = StompConnectionListenerClass(processMessage=messageProcessingFunction, conn=conn)
 conn.set_listener('', stompConnectionListener)
