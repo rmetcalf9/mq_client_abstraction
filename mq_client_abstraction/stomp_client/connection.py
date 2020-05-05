@@ -119,16 +119,18 @@ class ConnectionClass():
     except Exception as excepti:
       exceptionRaisedInRecieveFunction = excepti
 
-    if exceptionRaisedInRecieveFunction is None:
-      self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
-    else:
+    sendAck = True #false send nack otherwise send ack
+    if exceptionRaisedInRecieveFunction is not None:
       if registeredSubscription is not None:
         if registeredSubscription.sendNackOnException:
-          self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
-        else:
-          self.stompConnection.nack(id=headers["message-id"], subscription=headers["subscription"])
-      else:
-        self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
+          sendAck = False
+
+    if sendAck:
+      self.stompConnection.ack(id=headers["message-id"], subscription=headers["subscription"])
+    else:
+      self.stompConnection.nack(id=headers["message-id"], subscription=headers["subscription"])
+
+    if exceptionRaisedInRecieveFunction is not None:
       self.thrownException = MqClientThreadHealthCheckExceptionClass("Exception thrown in stomp recieve function")
       raise exceptionRaisedInRecieveFunction
 
