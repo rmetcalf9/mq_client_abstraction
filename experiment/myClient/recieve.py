@@ -7,22 +7,22 @@ mqClient = Common.getMqClient()
 
 destinationToTest="/queue/test"
 
-def recieveUsingThread():
-  print("recieveUsingThread")
+def receiveUsingThread():
+  print("receiveUsingThread")
   recieveQueue = queue.Queue()
   mqClient.subscribeDestinationToPythonQueue(destination=destinationToTest, queue=recieveQueue)
-  mqClient.startRecieveThread(sleepTime=0.1)
+  mqClient.startReceiveThread(sleepTime=0.1)
 
   it = 1
 
   try:
     while True:
-      print("loop recieveUsingThread", it)
+      print("loop receiveUsingThread", it)
       it = it + 1
       mqClient.threadHealthCheck()
       while not recieveQueue.empty():
         (message) = recieveQueue.get()
-        print("Recieved ", message)
+        print("Received ", message)
       time.sleep(1)
   except KeyboardInterrupt:
     print('interrupted - so exiting!')
@@ -30,16 +30,16 @@ def recieveUsingThread():
   mqClient.close(wait=True)
 
 
-def recieveUsingApplicationProvidedProcessLoop():
-  print("recieveUsingApplicationProvidedProcessLoop")
-  def msgRecieveFunction(destination, body):
-    print("Recieved ", body, " sent to " , destination)
+def receiveUsingApplicationProvidedProcessLoop():
+  print("receiveUsingApplicationProvidedProcessLoop")
+  def msgReceiveFunction(destination, body):
+    print("Received ", body, " sent to " , destination)
   mqClient.subscribeToDestination(destination=destinationToTest, msgRecieveFunction=msgRecieveFunction)
 
   it = 1
   try:
       while True:
-        print("process loop (recieveUsingApplicationProvidedProcessLoop) ", it)
+        print("process loop (receiveUsingApplicationProvidedProcessLoop) ", it)
         mqClient.processLoopIteration()
         it = it + 1
         time.sleep(1)
@@ -48,10 +48,10 @@ def recieveUsingApplicationProvidedProcessLoop():
 
   mqClient.close(wait=True)
 
-def recieveUsingProcessLoop():
-  print("recieveUsingProcessLoop")
-  def msgRecieveFunction(destination, body):
-    print("Recieved " + destination + " processing " + body, end="")
+def receiveUsingProcessLoop():
+  print("receiveUsingProcessLoop")
+  def msgReceiveFunction(destination, body):
+    print("Received " + destination + " processing " + body, end="")
     sys.stdout.flush()
     for a in range(0,6):
       print(".", end="")
@@ -74,7 +74,7 @@ def recieveUsingProcessLoop():
   counter = Counter()
 
   def functionToRunOnEachIteration():
-    print("Loop iteration function (recieveUsingProcessLoop)", counter.plusplus())
+    print("Loop iteration function (receiveUsingProcessLoop)", counter.plusplus())
   mqClient.processLoop(
     exitFunction=None,
     timeoutInSeconds=None,
@@ -96,7 +96,7 @@ elif (len(sys.argv)==2):
   elif sys.argv[1]=='C':
     recieveUsingProcessLoop()
   else:
-    print("Arge must be A, B, or C")
+    print("Arg must be A, B, or C")
 else:
   print("Only one arg")
 
