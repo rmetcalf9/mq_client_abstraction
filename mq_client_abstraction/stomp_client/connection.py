@@ -43,10 +43,7 @@ class ConnectionClass():
     self.reconnectMaxRetries = reconnectMaxRetries
     self.reconectInitialSecondsBetweenTries = reconectInitialSecondsBetweenTries
     self.reconnectFadeoffFactor = reconnectFadeoffFactor
-
-    self.stompConnection = stomp.Connection(
-      host_and_ports=[(self.fullConnectionDetails["FormattedConnectionDetails"]["Url"], self.fullConnectionDetails["FormattedConnectionDetails"]["Port"])]
-    )
+    self.stompConnection = None
 
     self._connectIfNeeded(description=description)
 
@@ -55,6 +52,9 @@ class ConnectionClass():
     if self.connected:
       self._connectIfNeededLock.release()
       return
+    self.stompConnection = stomp.Connection(
+      host_and_ports=[(self.fullConnectionDetails["FormattedConnectionDetails"]["Url"], self.fullConnectionDetails["FormattedConnectionDetails"]["Port"])]
+    )
     if self.fullConnectionDetails["FormattedConnectionDetails"]["Protocol"] == "stomp":
       pass
     elif self.fullConnectionDetails["FormattedConnectionDetails"]["Protocol"] == "stomp+ssl":
@@ -103,7 +103,10 @@ class ConnectionClass():
     try:
       if self.closed:
         return
+      self._connectIfNeededLock.acquire(blocking=True, timeout=-1)
       self.connected = False
+      self.stompConnection = None
+      self._connectIfNeededLock.release()
       # If we have subscribers then we must reconnect and register all the subscriptions again
       #  otherwise we cna wait and only reconnect when sendStringMessage or registerSubscription is called
       if len(self.registeredSubscriptions) == 0:
@@ -139,6 +142,7 @@ class ConnectionClass():
     if self.closed:
       raise MqClientExceptionClass("Trying to send message on closed STOMP connection")
     self._connectIfNeeded(description="sendStringMessage")
+    #Sometimes stomp.exception.NotConnectedException is thrown in following commnad
     self.stompConnection.send(body=body, destination=internalDestination)
 
   def registerSubscription(self, internalDestination, prefetchSize):

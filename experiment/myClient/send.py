@@ -9,4 +9,4 @@ for x in range(0,10):
 mqClient.close(wait=True)
 
 
-# python3 ./send.py
+# python3 ./send.pyq
