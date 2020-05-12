@@ -143,7 +143,16 @@ class ConnectionClass():
       raise MqClientExceptionClass("Trying to send message on closed STOMP connection")
     self._connectIfNeeded(description="sendStringMessage")
     #Sometimes stomp.exception.NotConnectedException is thrown in following commnad
-    self.stompConnection.send(body=body, destination=internalDestination)
+    try:
+      self.stompConnection.send(body=body, destination=internalDestination)
+    except stomp.exception.NotConnectedException:
+      print("Got stomp.exception.NotConnectedException but on disconnect was never called - trying one more time")
+      self._connectIfNeededLock.acquire(blocking=True, timeout=-1)
+      self.connected = False
+      self.stompConnection = None
+      self._connectIfNeededLock.release()
+      self._connectIfNeeded(description="sendStringMessageRETRY")
+      self.stompConnection.send(body=body, destination=internalDestination)
 
   def registerSubscription(self, internalDestination, prefetchSize):
     self._connectIfNeeded(description="registerSubscription")
