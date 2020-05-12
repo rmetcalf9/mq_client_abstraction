@@ -105,6 +105,7 @@ class ConnectionClass():
         return
       self._connectIfNeededLock.acquire(blocking=True, timeout=-1)
       self.connected = False
+      self.stompConnection.disconnect()
       self.stompConnection = None
       self._connectIfNeededLock.release()
       # If we have subscribers then we must reconnect and register all the subscriptions again
@@ -149,6 +150,7 @@ class ConnectionClass():
       print("Got stomp.exception.NotConnectedException but on disconnect was never called - trying one more time")
       self._connectIfNeededLock.acquire(blocking=True, timeout=-1)
       self.connected = False
+      self.stompConnection.disconnect()
       self.stompConnection = None
       self._connectIfNeededLock.release()
       self._connectIfNeeded(description="sendStringMessageRETRY")
