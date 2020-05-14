@@ -47,9 +47,14 @@ class ConnectionClass():
 
     self._connectIfNeeded(description=description)
 
+  def log(self, string):
+    print("STOMP connection: " + string)
+
   def _connectIfNeeded(self, description):
+    self.log("connectIfNeeded start")
     self._connectIfNeededLock.acquire(blocking=True, timeout=-1)
     if self.connected:
+      self.log("connectIfNeeded already connected")
       self._connectIfNeededLock.release()
       return
     self.stompConnection = stomp.Connection(
@@ -101,7 +106,9 @@ class ConnectionClass():
 
   def _onDisconnected(self):
     try:
+      self.log("onDisconnected")
       if self.closed:
+        self.log("onDisconnected - closing so ignored")
         return
       self._connectIfNeededLock.acquire(blocking=True, timeout=-1)
       self.connected = False
@@ -111,10 +118,14 @@ class ConnectionClass():
       # If we have subscribers then we must reconnect and register all the subscriptions again
       #  otherwise we cna wait and only reconnect when sendStringMessage or registerSubscription is called
       if len(self.registeredSubscriptions) == 0:
+        self.log("onDisconnected - no subscriptions so not reconnecting at this point")
         return
+
+      self.log("onDisconnected - There are subscriptions so connecgin if needed")
       self.retryWrapperAround_connectIfNeeded(description="_onDisconnected")
 
       #now we have connected re-register all subscriptions on new connection
+      self.log("onDisconnected - Resubscribing")
       for internalDestination in self.registeredSubscriptions:
         self.registeredSubscriptions[internalDestination].subscribeToStompConnection(self.stompConnection)
     except Exception as excepti:
