@@ -31,6 +31,7 @@ class ConnectionClass():
   reconnectFadeoffFactor = None
 
   _connectIfNeededLock = None
+  _onDisconnectedInProgress = None
 
   def __init__(self, fullConnectionDetails, recieveFunction, reconnectMaxRetries, reconectInitialSecondsBetweenTries, reconnectFadeoffFactor, description="Initial"):
     self._connectIfNeededLock = threading.Lock()
@@ -44,6 +45,7 @@ class ConnectionClass():
     self.reconectInitialSecondsBetweenTries = reconectInitialSecondsBetweenTries
     self.reconnectFadeoffFactor = reconnectFadeoffFactor
     self.stompConnection = None
+    self._onDisconnectedInProgress = False
 
     self._connectIfNeeded(description=description)
 
@@ -51,10 +53,10 @@ class ConnectionClass():
     print("STOMP connection: " + string)
 
   def _connectIfNeeded(self, description):
-    self.log("connectIfNeeded start")
+    self.log("connectIfNeeded start (" + description + ")")
     self._connectIfNeededLock.acquire(blocking=True, timeout=-1)
     if self.connected:
-      self.log("connectIfNeeded already connected")
+      self.log("connectIfNeeded already connected(" + description + ")")
       self._connectIfNeededLock.release()
       return
     self.stompConnection = stomp.Connection(
@@ -105,10 +107,14 @@ class ConnectionClass():
     raise Exception(message)
 
   def _onDisconnected(self):
+    if self._onDisconnectedInProgress:
+      return
+    self._onDisconnectedInProgress = True
     try:
       self.log("onDisconnected")
       if self.closed:
         self.log("onDisconnected - closing so ignored")
+        self._onDisconnectedInProgress = False
         return
       self._connectIfNeededLock.acquire(blocking=True, timeout=-1)
       self.connected = False
@@ -119,6 +125,7 @@ class ConnectionClass():
       #  otherwise we cna wait and only reconnect when sendStringMessage or registerSubscription is called
       if len(self.registeredSubscriptions) == 0:
         self.log("onDisconnected - no subscriptions so not reconnecting at this point")
+        self._onDisconnectedInProgress = False
         return
 
       self.log("onDisconnected - There are subscriptions so connecgin if needed")
@@ -128,9 +135,12 @@ class ConnectionClass():
       self.log("onDisconnected - Resubscribing")
       for internalDestination in self.registeredSubscriptions:
         self.registeredSubscriptions[internalDestination].subscribeToStompConnection(self.stompConnection)
+        self._onDisconnectedInProgress = False
     except Exception as excepti:
       self.thrownException = MqClientThreadHealthCheckExceptionClass("Exception thrown in stomp")
       raise excepti
+    finally:
+      self._onDisconnectedInProgress = False
 
   def _onMessage(self, headers, message):
     registeredSubscription = None
@@ -187,6 +197,7 @@ class ConnectionClass():
   def close(self, wait):
     self.closed = True
     self.stompConnection.disconnect()
+    self.stompConnection = None
 
   def healthCheck(self):
     if self.thrownException is not None:
