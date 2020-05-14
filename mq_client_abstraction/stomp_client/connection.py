@@ -60,7 +60,10 @@ class ConnectionClass():
       self._connectIfNeededLock.release()
       return
     self.stompConnection = stomp.Connection(
-      host_and_ports=[(self.fullConnectionDetails["FormattedConnectionDetails"]["Url"], self.fullConnectionDetails["FormattedConnectionDetails"]["Port"])]
+      host_and_ports=[
+        (self.fullConnectionDetails["FormattedConnectionDetails"]["Url"], self.fullConnectionDetails["FormattedConnectionDetails"]["Port"]),
+        heartbeats=(4000, 4000) #heartbeats every 4 seconds
+      ]
     )
     if self.fullConnectionDetails["FormattedConnectionDetails"]["Protocol"] == "stomp":
       pass
