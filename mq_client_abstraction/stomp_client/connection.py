@@ -15,6 +15,7 @@ class registeredSubscriptionClass():
     self.prefetchSize = prefetchSize
     self.id = str(uuid.uuid4())
   def subscribeToStompConnection(self, stompConnection):
+    print("STOMP subscribeToStompDestination - " + self.internalDestination)
     stompConnection.subscribe(destination=self.internalDestination, id=self.id, ack='client-individual', headers={'activemq.prefetchSize': self.prefetchSize})
 
 
@@ -131,7 +132,7 @@ class ConnectionClass():
         self._onDisconnectedInProgress = False
         return
 
-      self.log("onDisconnected - There are subscriptions so connecgin if needed")
+      self.log("onDisconnected - There are subscriptions so re-connection is needed")
       self.retryWrapperAround_connectIfNeeded(description="_onDisconnected")
 
       #now we have connected re-register all subscriptions on new connection
