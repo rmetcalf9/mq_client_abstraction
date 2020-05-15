@@ -82,6 +82,14 @@ class ConnectionClass():
       self.fullConnectionDetails["Password"],
       wait=True
     )
+    self.stompConnection.set_listener(
+      '',
+      StompConnectionListenerClass(
+        messageFunction=self._onMessage,
+        disconnectedFunction=self._onDisconnected,
+        errorFunction=self._onError
+      )
+    )
     print("STOMP Connection successful " + description)
     self.connected = True
     self._connectIfNeededLock.release()
@@ -183,16 +191,6 @@ class ConnectionClass():
 
   def registerSubscription(self, internalDestination, prefetchSize):
     self._connectIfNeeded(description="registerSubscription")
-    if len(self.registeredSubscriptions) == 0:
-      ##print("registerSubscription - registeringNEW subscription")
-      self.stompConnection.set_listener(
-        '',
-        StompConnectionListenerClass(
-          messageFunction=self._onMessage,
-          disconnectedFunction=self._onDisconnected,
-          errorFunction = self._onError
-        )
-      )
     registeredSubscription = registeredSubscriptionClass(internalDestination, prefetchSize)
     self.registeredSubscriptions[internalDestination] = registeredSubscription
     registeredSubscription.subscribeToStompConnection(self.stompConnection)
