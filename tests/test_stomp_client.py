@@ -129,6 +129,16 @@ class test_stompClient(TestHelperSuperClass.testHelperSuperClass):
       "destination": "/queue/test",
       "internaldestination": "/queue/AABBXXtest"
     })
+    validMappings.append( {
+      "prefix": "",
+      "destination": "/topic/test",
+      "internaldestination": "/topic/test"
+    })
+    validMappings.append( {
+      "prefix": "AABBXX",
+      "destination": "/topic/test",
+      "internaldestination": "/topic/AABBXXtest"
+    })
 
     configDict = {
       "Type": "Stomp",

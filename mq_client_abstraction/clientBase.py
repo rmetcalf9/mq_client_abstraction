@@ -8,7 +8,7 @@ import threading
 # process loop function provided by mq_client
 # process loop provided by caller
 
-validDestinationPrefixes = ["/queue/"]
+validDestinationPrefixes = ["/queue/", "/topic/" ]
 
 
 class MqClientExceptionClass(Exception):
