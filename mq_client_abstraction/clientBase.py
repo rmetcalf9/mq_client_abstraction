@@ -203,7 +203,7 @@ class MqClientBaseClass():
   def _mapToInternalDestination(self, destination):
     usedPrefix = self.___getUsedPrefix(destination=destination)
     if usedPrefix is None:
-      raise MqClientExceptionClass("Invalid Destination")
+      raise MqClientExceptionClass("Invalid Destination - Must start /queue/ or /topic/ (" + str(destination) + ")")
     return usedPrefix + self.destinationPrefix + destination[len(usedPrefix):]
 
   def _mapFromInternalDestination(self, destination):
