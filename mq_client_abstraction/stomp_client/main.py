@@ -33,6 +33,7 @@ def getFormattedConnectionDetails(connectionString):
 class mainClass(MqClientBaseClass):
   connectionPool = None
   skipConnectionCheck = None
+  clientId = None
   def __init__(self, configDict):
     super(mainClass, self).__init__(configDict=configDict)
 
@@ -51,6 +52,9 @@ class mainClass(MqClientBaseClass):
     if "reconnectFadeoffFactor" in configDict:
       reconnectFadeoffFactor = configDict["reconnectFadeoffFactor"]
 
+    if "clientId" in configDict:
+      self.clientId = configDict["clientId"]
+      print("STOMP using client ID " + self.clientId)
 
     requiredInDict = ["Username", "Password", "ConnectionString"]
     for x in requiredInDict:
@@ -67,16 +71,18 @@ class mainClass(MqClientBaseClass):
       skipConnectionCheck=self.skipConnectionCheck,
       reconnectMaxRetries=reconnectMaxRetries,
       reconectInitialSecondsBetweenTries=reconectInitialSecondsBetweenTries,
-      reconnectFadeoffFactor=reconnectFadeoffFactor
+      reconnectFadeoffFactor=reconnectFadeoffFactor,
+      clientId=self.clientId
     )
 
   def _sendStringMessage(self, internalDestination, body):
     self.connectionPool.getConnection().sendStringMessage(internalDestination=internalDestination, body=body)
 
-  def _registerSubscription(self, internalDestination, prefetchSize):
+  def _registerSubscription(self, internalDestination, prefetchSize, durableSubscriptionName):
     self.connectionPool.getConnection().registerSubscription(
       internalDestination=internalDestination,
-      prefetchSize=prefetchSize
+      prefetchSize=prefetchSize,
+      durableSubscriptionName=durableSubscriptionName
     )
 
   def _close(self, wait):

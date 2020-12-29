@@ -95,13 +95,13 @@ class MqClientBaseClass():
     self.validateDestination(destination=internalDestination)
     self._sendStringMessage(internalDestination=internalDestination, body=body)
 
-  def subscribeToDestination(self, destination, msgRecieveFunction, prefetchSize=1):
+  def subscribeToDestination(self, destination, msgRecieveFunction, prefetchSize=1, durableSubscriptionName=None):
     internalDestination = self._mapToInternalDestination(destination)
     self.validateDestination(destination=internalDestination)
     if internalDestination in self.subscriptions:
       raise MqClientExceptionClass("This mq client Only supports one subscription per destination")
     self.subscriptions[internalDestination] = msgRecieveFunction
-    self._registerSubscription(internalDestination=internalDestination, prefetchSize=prefetchSize)
+    self._registerSubscription(internalDestination=internalDestination, prefetchSize=prefetchSize,durableSubscriptionName=durableSubscriptionName)
 
   def subscribeDestinationToPythonQueue(self, destination, queue):
     def msgRecieveFunction(destination, body):
@@ -185,7 +185,7 @@ class MqClientBaseClass():
   def _sendStringMessage(self, internalDestination, body):
     raise Exception('_sendStringMessage Not Overridden')
 
-  def _registerSubscription(self, internalDestination, prefetchSize):
+  def _registerSubscription(self, internalDestination, prefetchSize, durableSubscriptionName):
     pass #overriden by inherited classes incase they have logic
 
   def _processLoopIteration(self):

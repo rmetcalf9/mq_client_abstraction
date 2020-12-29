@@ -12,12 +12,14 @@ class ConnectionPoolClass():
   reconnectMaxRetries = None
   reconectInitialSecondsBetweenTries = None
   reconnectFadeoffFactor = None
+  clientId = None
 
   connections = None
 
   poolLock = None
 
-  def __init__(self, fullConnectionDetails, recieveFunction, skipConnectionCheck, reconnectMaxRetries, reconectInitialSecondsBetweenTries, reconnectFadeoffFactor):
+  def __init__(self, fullConnectionDetails, recieveFunction, skipConnectionCheck, reconnectMaxRetries, reconectInitialSecondsBetweenTries, reconnectFadeoffFactor, clientId):
+    self.clientId = clientId
     self.poolLock = threading.Lock()
     self.fullConnectionDetails = fullConnectionDetails
     self.recieveFunction = recieveFunction
@@ -33,6 +35,7 @@ class ConnectionPoolClass():
         reconnectMaxRetries=self.reconnectMaxRetries,
         reconectInitialSecondsBetweenTries=self.reconectInitialSecondsBetweenTries,
         reconnectFadeoffFactor=self.reconnectFadeoffFactor,
+        clientId=self.clientId,
         description="test connection"
       )
       testConnection.close(wait=True)
@@ -48,7 +51,8 @@ class ConnectionPoolClass():
           recieveFunction=self.recieveFunction,
           reconnectMaxRetries=self.reconnectMaxRetries,
           reconectInitialSecondsBetweenTries=self.reconectInitialSecondsBetweenTries,
-          reconnectFadeoffFactor=self.reconnectFadeoffFactor
+          reconnectFadeoffFactor=self.reconnectFadeoffFactor,
+          clientId=self.clientId
         )
       )
       self.poolLock.release()

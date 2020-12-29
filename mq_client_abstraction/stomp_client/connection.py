@@ -10,13 +10,18 @@ class registeredSubscriptionClass():
   internalDestination = None
   prefetchSize = None
   id = None
-  def __init__(self, internalDestination, prefetchSize):
+  durableSubscriptionName = None
+  def __init__(self, internalDestination, prefetchSize, durableSubscriptionName):
     self.internalDestination = internalDestination
     self.prefetchSize = prefetchSize
     self.id = str(uuid.uuid4())
+    self.durableSubscriptionName = durableSubscriptionName
   def subscribeToStompConnection(self, stompConnection):
     print("STOMP subscribeToStompDestination - " + self.internalDestination)
-    stompConnection.subscribe(destination=self.internalDestination, id=self.id, ack='client-individual', headers={'activemq.prefetchSize': self.prefetchSize})
+    if self.durableSubscriptionName is None:
+      stompConnection.subscribe(destination=self.internalDestination, id=self.id, ack='client-individual', headers={'activemq.prefetchSize': self.prefetchSize})
+    else:
+      stompConnection.subscribe(destination=self.internalDestination, id=self.id, ack='client-individual', headers={'activemq.prefetchSize': self.prefetchSize, 'subscription-type': 'MULTICAST','durable-subscription-name':self.durableSubscriptionName})
 
 
 class ConnectionClass():
@@ -30,11 +35,13 @@ class ConnectionClass():
   reconnectMaxRetries = None
   reconectInitialSecondsBetweenTries = None
   reconnectFadeoffFactor = None
+  clientId = None
 
   _connectIfNeededLock = None
   _onDisconnectedInProgress = None
 
-  def __init__(self, fullConnectionDetails, recieveFunction, reconnectMaxRetries, reconectInitialSecondsBetweenTries, reconnectFadeoffFactor, description="Initial"):
+  def __init__(self, fullConnectionDetails, recieveFunction, reconnectMaxRetries, reconectInitialSecondsBetweenTries, reconnectFadeoffFactor, clientId, description="Initial"):
+    self.clientId = clientId
     self._connectIfNeededLock = threading.Lock()
     self.closed = False
     self.fullConnectionDetails = fullConnectionDetails
@@ -77,11 +84,19 @@ class ConnectionClass():
       self._connectIfNeededLock.release()
       raise Exception("Unknown protocol")
 
-    self.stompConnection.connect(
-      self.fullConnectionDetails["Username"],
-      self.fullConnectionDetails["Password"],
-      wait=True
-    )
+    if self.clientId is None:
+      self.stompConnection.connect(
+        self.fullConnectionDetails["Username"],
+        self.fullConnectionDetails["Password"],
+        wait=True
+      )
+    else:
+      self.stompConnection.connect(
+        self.fullConnectionDetails["Username"],
+        self.fullConnectionDetails["Password"],
+        wait=True,
+        headers = {'client-id': clientId}
+      )
     self.stompConnection.set_listener(
       '',
       StompConnectionListenerClass(
@@ -189,9 +204,9 @@ class ConnectionClass():
       self._connectIfNeeded(description="sendStringMessageRETRY")
       self.stompConnection.send(body=body, destination=internalDestination)
 
-  def registerSubscription(self, internalDestination, prefetchSize):
+  def registerSubscription(self, internalDestination, prefetchSize, durableSubscriptionName):
     self._connectIfNeeded(description="registerSubscription")
-    registeredSubscription = registeredSubscriptionClass(internalDestination, prefetchSize)
+    registeredSubscription = registeredSubscriptionClass(internalDestination, prefetchSize, durableSubscriptionName=durableSubscriptionName)
     self.registeredSubscriptions[internalDestination] = registeredSubscription
     registeredSubscription.subscribeToStompConnection(self.stompConnection)
 
