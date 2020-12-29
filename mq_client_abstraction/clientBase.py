@@ -103,11 +103,11 @@ class MqClientBaseClass():
     self.subscriptions[internalDestination] = msgRecieveFunction
     self._registerSubscription(internalDestination=internalDestination, prefetchSize=prefetchSize,durableSubscriptionName=durableSubscriptionName)
 
-  def subscribeDestinationToPythonQueue(self, destination, queue):
+  def subscribeDestinationToPythonQueue(self, destination, queue, durableSubscriptionName=None):
     def msgRecieveFunction(destination, body):
       queue.put(body)
     # when going to a queue client is responsible for processing that queue
-    self.subscribeToDestination(destination, msgRecieveFunction, prefetchSize=50)
+    self.subscribeToDestination(destination, msgRecieveFunction, prefetchSize=50, durableSubscriptionName=durableSubscriptionName)
 
   # The process loop is for recievers that need to keep a loop running. It is not required for some types of
   #  client (Stomp) but is requried for others (Memory)
