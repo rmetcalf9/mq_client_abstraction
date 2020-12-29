@@ -17,10 +17,11 @@ class registeredSubscriptionClass():
     self.id = str(uuid.uuid4())
     self.durableSubscriptionName = durableSubscriptionName
   def subscribeToStompConnection(self, stompConnection):
-    print("STOMP subscribeToStompDestination - " + self.internalDestination)
     if self.durableSubscriptionName is None:
+      print("STOMP subscribeToStompDestination - " + self.internalDestination)
       stompConnection.subscribe(destination=self.internalDestination, id=self.id, ack='client-individual', headers={'activemq.prefetchSize': self.prefetchSize})
     else:
+      print("STOMP subscribeToStompDestination - " + self.internalDestination + " - durableSubscriptionName " + self.durableSubscriptionName)
       stompConnection.subscribe(destination=self.internalDestination, id=self.id, ack='client-individual', headers={'activemq.prefetchSize': self.prefetchSize, 'subscription-type': 'MULTICAST','durable-subscription-name':self.durableSubscriptionName})
 
 
