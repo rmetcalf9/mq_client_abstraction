@@ -6,6 +6,9 @@ import threading
 #  will automatically re-establish if it is lisetning for messages, otherwise it will not and restablish
 #  only reconect on next subscribe or sendmessage event
 
+# When using a clientID then there can not be a connection pool so the current implementation of only one connection
+#  in the pool is required
+
 class ConnectionPoolClass():
   fullConnectionDetails = None # includes username and password
   recieveFunction = None # function to call when messages are recieved
@@ -27,20 +30,13 @@ class ConnectionPoolClass():
     self.reconectInitialSecondsBetweenTries = reconectInitialSecondsBetweenTries
     self.reconnectFadeoffFactor = reconnectFadeoffFactor
 
+    self.connections = []
+
     if not skipConnectionCheck:
       # Test connection on creation of pool
-      testConnection = ConnectionClass(
-        self.fullConnectionDetails,
-        recieveFunction=self.recieveFunction,
-        reconnectMaxRetries=self.reconnectMaxRetries,
-        reconectInitialSecondsBetweenTries=self.reconectInitialSecondsBetweenTries,
-        reconnectFadeoffFactor=self.reconnectFadeoffFactor,
-        clientId=self.clientId,
-        description="test connection"
-      )
-      testConnection.close(wait=True)
+      #  and leave connection open
+      testConnection = self.getConnection()
 
-    self.connections = []
 
   def getConnection(self):
     if len(self.connections)==0:
