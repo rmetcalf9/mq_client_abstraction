@@ -96,7 +96,7 @@ class ConnectionClass():
         self.fullConnectionDetails["Username"],
         self.fullConnectionDetails["Password"],
         wait=True,
-        headers = {'client-id': clientId}
+        headers = {'client-id': self.clientId}
       )
     self.stompConnection.set_listener(
       '',
