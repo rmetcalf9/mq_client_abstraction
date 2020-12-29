@@ -109,7 +109,7 @@ class ConnectionClass():
     if self.clientId is None:
       print("STOMP Connection successful " + description)
     else:
-      print("STOMP Connection successful " + description + " using client id " + self.recieveFunction)
+      print("STOMP Connection successful " + description + " using client id " + self.clientId)
 
     self.connected = True
     self._connectIfNeededLock.release()
