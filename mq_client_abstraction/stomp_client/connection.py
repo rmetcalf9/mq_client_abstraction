@@ -64,55 +64,55 @@ class ConnectionClass():
   def _connectIfNeeded(self, description):
     self.log("connectIfNeeded start (" + description + ")")
     self._connectIfNeededLock.acquire(blocking=True, timeout=-1)
-    if self.connected:
-      self.log("connectIfNeeded already connected(" + description + ")")
-      self._connectIfNeededLock.release()
-      return
-    self.stompConnection = stomp.Connection(
-      host_and_ports=[
-        (self.fullConnectionDetails["FormattedConnectionDetails"]["Url"], self.fullConnectionDetails["FormattedConnectionDetails"]["Port"])
-      ],
-      heartbeats=(4000, 4000) #heartbeats every 4 seconds
-    )
-    if self.fullConnectionDetails["FormattedConnectionDetails"]["Protocol"] == "stomp":
-      pass
-    elif self.fullConnectionDetails["FormattedConnectionDetails"]["Protocol"] == "stomp+ssl":
-      self.stompConnection.set_ssl(
-        for_hosts=[(self.fullConnectionDetails["FormattedConnectionDetails"]["Url"],
-                    self.fullConnectionDetails["FormattedConnectionDetails"]["Port"])],
-        ssl_version=ssl.PROTOCOL_TLSv1_2)
-    else:
-      self._connectIfNeededLock.release()
-      raise Exception("Unknown protocol")
+    try:
+      if self.connected:
+        self.log("connectIfNeeded already connected(" + description + ")")
+        return
+      self.stompConnection = stomp.Connection(
+        host_and_ports=[
+          (self.fullConnectionDetails["FormattedConnectionDetails"]["Url"], self.fullConnectionDetails["FormattedConnectionDetails"]["Port"])
+        ],
+        heartbeats=(4000, 4000) #heartbeats every 4 seconds
+      )
+      if self.fullConnectionDetails["FormattedConnectionDetails"]["Protocol"] == "stomp":
+        pass
+      elif self.fullConnectionDetails["FormattedConnectionDetails"]["Protocol"] == "stomp+ssl":
+        self.stompConnection.set_ssl(
+          for_hosts=[(self.fullConnectionDetails["FormattedConnectionDetails"]["Url"],
+                      self.fullConnectionDetails["FormattedConnectionDetails"]["Port"])],
+          ssl_version=ssl.PROTOCOL_TLSv1_2)
+      else:
+        raise Exception("Unknown protocol")
 
-    if self.clientId is None:
-      self.stompConnection.connect(
-        self.fullConnectionDetails["Username"],
-        self.fullConnectionDetails["Password"],
-        wait=True
+      if self.clientId is None:
+        self.stompConnection.connect(
+          self.fullConnectionDetails["Username"],
+          self.fullConnectionDetails["Password"],
+          wait=True
+        )
+      else:
+        self.stompConnection.connect(
+          self.fullConnectionDetails["Username"],
+          self.fullConnectionDetails["Password"],
+          wait=True,
+          headers = {'client-id': self.clientId}
+        )
+      self.stompConnection.set_listener(
+        '',
+        StompConnectionListenerClass(
+          messageFunction=self._onMessage,
+          disconnectedFunction=self._onDisconnected,
+          errorFunction=self._onError
+        )
       )
-    else:
-      self.stompConnection.connect(
-        self.fullConnectionDetails["Username"],
-        self.fullConnectionDetails["Password"],
-        wait=True,
-        headers = {'client-id': self.clientId}
-      )
-    self.stompConnection.set_listener(
-      '',
-      StompConnectionListenerClass(
-        messageFunction=self._onMessage,
-        disconnectedFunction=self._onDisconnected,
-        errorFunction=self._onError
-      )
-    )
-    if self.clientId is None:
-      print("STOMP Connection successful " + description)
-    else:
-      print("STOMP Connection successful " + description + " using client id " + self.clientId)
+      if self.clientId is None:
+        print("STOMP Connection successful " + description)
+      else:
+        print("STOMP Connection successful " + description + " using client id " + self.clientId)
 
-    self.connected = True
-    self._connectIfNeededLock.release()
+      self.connected = True
+    finally:
+      self._connectIfNeededLock.release()
 
   def retryWrapperAround_connectIfNeeded(self, description):
     retriesRemaining = self.reconnectMaxRetries
@@ -149,10 +149,12 @@ class ConnectionClass():
         self._onDisconnectedInProgress = False
         return
       self._connectIfNeededLock.acquire(blocking=True, timeout=-1)
-      self.connected = False
-      self.stompConnection.disconnect()
-      self.stompConnection = None
-      self._connectIfNeededLock.release()
+      try:
+        self.connected = False
+        self.stompConnection.disconnect()
+        self.stompConnection = None
+      finally:
+        self._connectIfNeededLock.release()
       # If we have subscribers then we must reconnect and register all the subscriptions again
       #  otherwise we cna wait and only reconnect when sendStringMessage or registerSubscription is called
       if len(self.registeredSubscriptions) == 0:
@@ -202,10 +204,12 @@ class ConnectionClass():
     except stomp.exception.NotConnectedException:
       print("Got stomp.exception.NotConnectedException but on disconnect was never called - trying one more time")
       self._connectIfNeededLock.acquire(blocking=True, timeout=-1)
-      self.connected = False
-      self.stompConnection.disconnect()
-      self.stompConnection = None
-      self._connectIfNeededLock.release()
+      try:
+        self.connected = False
+        self.stompConnection.disconnect()
+        self.stompConnection = None
+      finally:
+        self._connectIfNeededLock.release()
       self._connectIfNeeded(description="sendStringMessageRETRY")
       self.stompConnection.send(body=body, destination=internalDestination)
 
